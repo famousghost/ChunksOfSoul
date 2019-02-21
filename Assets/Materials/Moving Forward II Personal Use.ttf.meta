@@ -1,0 +1,23 @@
+fileFormatVersion: 2
+guid: 33e917422647a5145832b8a4e7cc24a4
+timeCreated: 1524328812
+licenseType: Free
+TrueTypeFontImporter:
+  externalObjects: {}
+  serializedVersion: 4
+  fontSize: 16
+  forceTextureCase: -1
+  characterSpacing: 0
+  characterPadding: 1
+  includeFontData: 1
+  fontName: Moving Forward II Personal Use
+  fontNames:
+  - Moving Forward II Personal Use
+  fallbackFontReferences: []
+  customCharacters: 
+  fontRenderingMode: 0
+  ascentCalculationMode: 1
+  useLegacyBoundsCalculation: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
