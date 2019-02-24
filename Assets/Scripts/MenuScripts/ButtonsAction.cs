@@ -8,6 +8,9 @@ public class ButtonsAction : MonoBehaviour{
 
     #region Bool
     [SerializeField]
+    private bool isRotating = false;
+
+    [SerializeField]
     private bool isHover = false;
 
     [SerializeField]
@@ -59,6 +62,15 @@ public class ButtonsAction : MonoBehaviour{
 
     #region Transform
     [SerializeField]
+    private Transform cameraOriginalLookAtPosition;
+
+    [SerializeField]
+    private Transform rotationDestination;
+
+    [SerializeField]
+    private Transform cameraSettingsPosition;
+
+    [SerializeField]
     private Transform cameraMenuPosition;
 
     [SerializeField]
@@ -79,11 +91,6 @@ public class ButtonsAction : MonoBehaviour{
     private float step = 2.0f;
     #endregion
 
-    #region OptionCanvas
-    [SerializeField]
-    private GameObject optionCanvas;
-    #endregion // dodane przez Kacpra, w SystemMethods ją wyłączam, w WhichbuttonwasClicked Aktywuję
-
     #region System Methods
     // Use this for initialization
     void Start()
@@ -97,7 +104,6 @@ public class ButtonsAction : MonoBehaviour{
         backgroundImage = GameObject.Find("Background").GetComponent<Image>();
         fillImage = GameObject.Find("Fill").GetComponent<Image>();
         loadingSlider.enabled = false;
-        optionCanvas.SetActive(false);
     }
 
     // Update is called once per frame
@@ -105,6 +111,7 @@ public class ButtonsAction : MonoBehaviour{
     {
         ChangeTextPosition();
         CheckWhichButtonClicked();
+        SettingsRotation();
     }
     #endregion
 
@@ -169,13 +176,17 @@ public class ButtonsAction : MonoBehaviour{
         }
         if (buttonName == "SettingsPosition" && buttonIsClicked == false)
         {
+            isRotating = false;
             buttonIsClicked = true;
-            optionCanvas.SetActive(true);
+            isRotating = true;
+            rotationDestination = cameraSettingsPosition;
         }
         if (buttonName == "BackPosition" && buttonIsClicked == false)
         {
+            isRotating = false;
             buttonIsClicked = true;
-            optionCanvas.SetActive(false);
+            isRotating = true;
+            rotationDestination = cameraOriginalLookAtPosition;
         }
     }
     #endregion
@@ -222,6 +233,30 @@ public class ButtonsAction : MonoBehaviour{
             }
             yield return null;
         }
+    }
+    #endregion
+
+    #region CameraRotateTowards
+    private void SettingsRotation()
+    {
+        if(isRotating)
+        {
+            CameraRotateTowards();
+            if (IsAtRotationDestination())
+            {
+                isRotating = false;
+            }
+        }
+    }
+
+    private void CameraRotateTowards()
+    {
+        cameraMenuPosition.rotation = Quaternion.RotateTowards(cameraMenuPosition.rotation, rotationDestination.rotation, step * 10 * Time.deltaTime);
+    }
+
+    private bool IsAtRotationDestination()
+    {
+        return (Vector3.Angle(cameraMenuPosition.forward, rotationDestination.position - cameraMenuPosition.position) < 5);
     }
     #endregion
 

@@ -27,7 +27,7 @@ public class SliderScripts : MonoBehaviour {
     #region Volume Slider Function
     public void setVolume (float volume)
     {
-        mainMixer.SetFloat("volume", volume);
+        AudioListener.volume = volume;
         PlayerPrefs.SetFloat("playerVolume", volume);
     }
     #endregion
