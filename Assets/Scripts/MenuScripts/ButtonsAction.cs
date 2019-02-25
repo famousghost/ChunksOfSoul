@@ -6,76 +6,23 @@ using UnityEngine.UI;
 
 public class ButtonsAction : MonoBehaviour{
 
+    [SerializeField]
+    private StartingMenuController menuController;
+
     #region Bool
     [SerializeField]
-    private bool isRotating = false;
-
-    [SerializeField]
     private bool isHover = false;
-
-    [SerializeField]
-    private bool startClicked = false;
-
-    [SerializeField]
-    private bool gameStarted = false;
 
     [SerializeField]
     private bool buttonIsClicked = false;
     #endregion
 
-    #region Image
-    [SerializeField]
-    private Image backgroundImage;
-
-    [SerializeField]
-    private Image fillImage;
-
-    [SerializeField]
-    private Image loadingScreen;
-    #endregion
-
-    #region Slider
-    [SerializeField]
-    private Slider loadingSlider;
-    #endregion
-
-    #region Async
-    [SerializeField]
-    private AsyncOperation async;
-    #endregion
-
-    #region Text
-    [SerializeField]
-    private Text loadingDone;
-
-    [SerializeField]
-    private Text loadingText;
-    #endregion
-
     #region String
-    [SerializeField]
-    private string textToLoadingScreen;
-
     [SerializeField]
     private string buttonName = "";
     #endregion
 
     #region Transform
-    [SerializeField]
-    private Transform cameraOriginalLookAtPosition;
-
-    [SerializeField]
-    private Transform rotationDestination;
-
-    [SerializeField]
-    private Transform cameraSettingsPosition;
-
-    [SerializeField]
-    private Transform cameraMenuPosition;
-
-    [SerializeField]
-    private Transform cameraNewGamePostion;
-
     [SerializeField]
     private Transform textHoverTransform;
 
@@ -95,23 +42,13 @@ public class ButtonsAction : MonoBehaviour{
     // Use this for initialization
     void Start()
     {
-        cameraMenuPosition = GameObject.Find("Main Camera").GetComponent<Transform>();
-        cameraNewGamePostion = GameObject.Find("CameraNewGamePosition").GetComponent<Transform>();
-        loadingText = GameObject.Find("LoadingScreen").GetComponentInChildren<Text>();
-        loadingScreen = GameObject.Find("Loading").GetComponentInChildren<Image>();
-        loadingDone = GameObject.Find("LoadingDone").GetComponent<Text>();
-        loadingSlider = loadingScreen.GetComponentInChildren<Slider>();
-        backgroundImage = GameObject.Find("Background").GetComponent<Image>();
-        fillImage = GameObject.Find("Fill").GetComponent<Image>();
-        loadingSlider.enabled = false;
+        buttonName = this.gameObject.name;
     }
 
     // Update is called once per frame
     void Update()
     {
         ChangeTextPosition();
-        CheckWhichButtonClicked();
-        SettingsRotation();
     }
     #endregion
 
@@ -130,9 +67,9 @@ public class ButtonsAction : MonoBehaviour{
 
     void OnMouseDown()
     {
-        buttonName = this.gameObject.name;
         Debug.Log(buttonName);
         buttonIsClicked = false;
+        menuController.ButtonClicked(this);
     }
     #endregion
 
@@ -150,51 +87,15 @@ public class ButtonsAction : MonoBehaviour{
     }
     #endregion
 
-    #region Check Which Button was Clicked
-    private void CheckWhichButtonClicked()
-    {
-        if (startClicked && !gameStarted)
-        {
-            cameraMenuPosition.rotation = Quaternion.RotateTowards(cameraMenuPosition.rotation, cameraNewGamePostion.rotation, step * 10 * Time.deltaTime);
-            cameraMenuPosition.position = Vector3.MoveTowards(cameraMenuPosition.position, cameraNewGamePostion.position, step * Time.deltaTime);
-            bool checkCameraPosition = (cameraMenuPosition.rotation == cameraNewGamePostion.rotation);
-            if (checkCameraPosition)
-            {
-                gameStarted = true;
-                LoadGame(1);
-            }
-        }
-        if (buttonName == "StartPosition" && buttonIsClicked == false)
-        {
-            startClicked = true;
-            buttonIsClicked = true;
-        }
-        if (buttonName == "ExitPosition" && buttonIsClicked == false)
-        {
-            buttonIsClicked = true;
-            Application.Quit();
-        }
-        if (buttonName == "SettingsPosition" && buttonIsClicked == false)
-        {
-            isRotating = false;
-            buttonIsClicked = true;
-            isRotating = true;
-            rotationDestination = cameraSettingsPosition;
-        }
-        if (buttonName == "BackPosition" && buttonIsClicked == false)
-        {
-            isRotating = false;
-            buttonIsClicked = true;
-            isRotating = true;
-            rotationDestination = cameraOriginalLookAtPosition;
-        }
-    }
-    #endregion
-
     #region Getters
     public string GetButtonName()
     {
         return this.buttonName;
+    }
+
+    public bool GetButtonClicked()
+    {
+        return this.buttonIsClicked;
     }
     #endregion
 
@@ -203,61 +104,10 @@ public class ButtonsAction : MonoBehaviour{
     {
         this.buttonName = buttonName;
     }
-    #endregion
 
-    #region Load Game
-    public void LoadGame(int lvl)
+    public void SetButtonClicked(bool buttonIsClicked)
     {
-        StartCoroutine(LoadingScreenScene(lvl));
-    }
-
-    IEnumerator LoadingScreenScene(int lvl)
-    {
-        loadingText.text = textToLoadingScreen;
-        loadingSlider.enabled = true;
-        loadingScreen.GetComponent<Image>().enabled = true;
-        async = SceneManager.LoadSceneAsync(lvl);
-        async.allowSceneActivation = false;
-        backgroundImage.GetComponent<Image>().enabled = true;
-        fillImage.GetComponent<Image>().enabled = true;
-
-        while (async.isDone == false)
-        {
-            loadingText.GetComponent<Text>().enabled = true;
-            loadingSlider.value = async.progress;
-            if (async.progress == 0.9f)
-            {
-                loadingDone.GetComponent<Text>().enabled = true;
-                if (Input.anyKey)
-                    async.allowSceneActivation = true;
-            }
-            yield return null;
-        }
+        this.buttonIsClicked = buttonIsClicked;
     }
     #endregion
-
-    #region CameraRotateTowards
-    private void SettingsRotation()
-    {
-        if(isRotating)
-        {
-            CameraRotateTowards();
-            if (IsAtRotationDestination())
-            {
-                isRotating = false;
-            }
-        }
-    }
-
-    private void CameraRotateTowards()
-    {
-        cameraMenuPosition.rotation = Quaternion.RotateTowards(cameraMenuPosition.rotation, rotationDestination.rotation, step * 10 * Time.deltaTime);
-    }
-
-    private bool IsAtRotationDestination()
-    {
-        return (Vector3.Angle(cameraMenuPosition.forward, rotationDestination.position - cameraMenuPosition.position) < 5);
-    }
-    #endregion
-
 }

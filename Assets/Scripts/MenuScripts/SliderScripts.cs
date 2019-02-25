@@ -20,10 +20,6 @@ public class SliderScripts : MonoBehaviour {
     private Slider brightnessSlider;
     #endregion
 
-    #region Audio Mixer
-    public AudioMixer mainMixer;
-    #endregion
-
     #region Volume Slider Function
     public void setVolume (float volume)
     {
