@@ -1,72 +1,121 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 public class MenuDisplay : MonoBehaviour {
 
-    #region MenuCanvas
-    [SerializeField]
-    private GameObject MenuCanvas;
-    #endregion
+    #region Variables
+    private bool cancelActive = false;
+    private bool settingsDisplayed = false;
+    private bool controlsDisplayed = false;
 
-    #region Disabling stuff so that cursor is visible and player can't move
+    [SerializeField]
+    public GameObject gamePauseParent;
+
+    [SerializeField]
+    public GameObject gamePauseMain;
+
+    [SerializeField]
+    public GameObject gamePauseMainSettings;
+
+    [SerializeField]
+    public GameObject gamePauseMainControls;
+
     [SerializeField]
     private PlayerControler playerControler;
 
     [SerializeField]
-    private ItemDisplay itemDisplay;
+    private ItemDisplay itemDisplay; //MARCIN TUTAJ! (i w linijce 107)
 
     [SerializeField]
     private ItemsPickUp itemsPickUp;
 
+    [SerializeField]
+    public GameObject player;
     #endregion
 
-    #region Active Bool
-    private bool Active = false;
-    #endregion
-
-    #region Start (Canvas Off)
-    // Use this for initialization
-    void Start () {
-        MenuCanvas.SetActive(false);
+    #region Start
+    void Awake () {
+        gamePauseMainSettings.SetActive(false);
+        gamePauseParent.SetActive(false);
+        gamePauseMainControls.SetActive(false);
     }
     #endregion
 
     #region Update
-    // Update is called once per frame
     void Update () {
-		if(Input.GetKeyDown(KeyCode.Escape) && Active == false)
-        {
-            menuDislpayerFalse();
-        }
-        else if(Input.GetKeyDown(KeyCode.Escape) && Active == true)
-        {
-            menuDislpayerTrue();
-        }
+        GamePause(0);
 	}
     #endregion
 
-    #region Option Activating Function
-    void menuDislpayerFalse()
+    #region GamePause
+    public void GamePause(int a)
     {
-        Active = true;
-        MenuCanvas.SetActive(true);
-        playerControler.enabled = false;
-        itemsPickUp.enabled = false;
-        itemDisplay.enabled = false;
-        Cursor.visible = true;
-        Cursor.lockState = CursorLockMode.None;
+        if (Input.GetKeyDown(KeyCode.Escape) || a > 0.0f)
+        {
+            if (gamePauseMainSettings.active)
+            {
+                SettingsToggle();
+            }
+            else if (gamePauseMainControls.active)
+            {
+                ControlsToggle();
+            }
+            else
+            {
+                MenuToggle();
+            }
+        }
     }
+    #endregion
 
-    void menuDislpayerTrue()
+    #region BackToMenu
+    public void BackToMenu()
     {
-        Active = false;
-        MenuCanvas.SetActive(false);
-        playerControler.enabled = true;
-        itemsPickUp.enabled = true;
-        itemDisplay.enabled = true;
-        Cursor.visible = false;
-        Cursor.lockState = CursorLockMode.Locked;
+        SceneManager.LoadScene("MainMenu");
+        Destroy(player);
+        Destroy(GameManager.instance.gameObject);
+    }
+    #endregion
+
+    #region SettingsTOGGLE
+    public void SettingsToggle()
+    {
+        gamePauseMain.SetActive(settingsDisplayed);
+        settingsDisplayed = !settingsDisplayed;
+        gamePauseMainSettings.SetActive(settingsDisplayed);
+    }
+    #endregion
+
+    #region ControlsTOGGLE
+    public void ControlsToggle()
+    {
+        gamePauseMain.SetActive(controlsDisplayed);
+        controlsDisplayed = !controlsDisplayed;
+        gamePauseMainControls.SetActive(controlsDisplayed);
+    }
+    #endregion
+
+    #region MenuToggle
+    void MenuToggle()
+    {
+        gamePauseParent.SetActive(!cancelActive);
+        playerControler.enabled = cancelActive;
+        itemsPickUp.enabled = cancelActive;
+        itemDisplay.enabled = cancelActive;
+
+        cancelActive = !cancelActive;
+
+        Cursor.visible = cancelActive;
+        if (Cursor.lockState == CursorLockMode.Confined || Cursor.lockState == CursorLockMode.None)
+        {
+            Cursor.lockState = CursorLockMode.Locked;
+        }
+        else if (Cursor.lockState == CursorLockMode.Locked)
+        {
+            Cursor.lockState = CursorLockMode.Confined;
+        }
     }
     #endregion
 }

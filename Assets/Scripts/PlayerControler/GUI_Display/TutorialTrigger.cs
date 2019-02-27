@@ -15,7 +15,6 @@ public class TutorialTrigger : MonoBehaviour {
     {
         if(other.gameObject.tag == "Player")
         {
-            tutorialDisplay = other.GetComponent<TutorialDisplay>();
             tutorialDisplay.SetTutorialText(tutorialText);
             tutorialDisplay.EnteredTrigger(true);
             tutorialDisplay.SetTimer(0.4f);
