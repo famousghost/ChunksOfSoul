@@ -14,7 +14,7 @@ public class LadderClimbing : MonoBehaviour {
     // Use this for initialization
     void Start () {
         playerBody = GetComponent<PlayerControler>();
-	}
+    }
     #endregion
 
     #region Triggers
@@ -25,10 +25,12 @@ public class LadderClimbing : MonoBehaviour {
             playerBody.GravityDisable();
             if (playerBody.GetRotationeY() >= 0.0f)
             {
+                playerBody.isClimbing = false;
                 playerBody.PlayerClimb(false);
             }
             else
             {
+                playerBody.isClimbing = true;
                 playerBody.PlayerClimb(true);
             }
         }

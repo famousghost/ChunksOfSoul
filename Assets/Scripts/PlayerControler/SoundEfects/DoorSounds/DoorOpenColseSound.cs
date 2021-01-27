@@ -14,11 +14,6 @@ public class DoorOpenColseSound : MonoBehaviour
     private AudioSource sourceOfDoorSounds;
     #endregion
 
-    #region EmergencyLights Class
-    [SerializeField]
-    private EmergencyLights emergencyLights;
-    #endregion
-
     #region AudioClip
     [SerializeField]
     private AudioClip doorOpenSound;
@@ -32,7 +27,6 @@ public class DoorOpenColseSound : MonoBehaviour
     void Awake()
     {
         doorOpenedAndClosed = GetComponent<DoorIsOpenedAndClosed>();
-        emergencyLights = GameObject.FindGameObjectWithTag("LightState").GetComponent<EmergencyLights>();
         sourceOfDoorSounds = GetComponent<AudioSource>();
         doorOpenSound = Resources.Load("Switches/ClickOn", typeof(AudioClip)) as AudioClip;
         doorCloseSound = Resources.Load("Switches/ClickOn", typeof(AudioClip)) as AudioClip;
@@ -40,11 +34,8 @@ public class DoorOpenColseSound : MonoBehaviour
 
     void Update()
     {
-        if(emergencyLights.GetLightState() != LightsState.Off)
-        {
-            doorOpenSound = Resources.Load("GameSounds/DoorSounds/openDoor", typeof(AudioClip)) as AudioClip;
-            doorCloseSound = Resources.Load("GameSounds/DoorSounds/openDoor", typeof(AudioClip)) as AudioClip;
-        }
+        doorOpenSound = Resources.Load("GameSounds/DoorSounds/openDoor", typeof(AudioClip)) as AudioClip;
+        doorCloseSound = Resources.Load("GameSounds/DoorSounds/openDoor", typeof(AudioClip)) as AudioClip;
     }
     #endregion
 

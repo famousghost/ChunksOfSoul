@@ -9,9 +9,6 @@ public class DoorIsOpenedAndClosed : MonoBehaviour {
     private GameObject thisDoor;
 
     [SerializeField]
-    private EmergencyLights emergencyLights;
-
-    [SerializeField]
     private Transform doorOpened1;
 
     [SerializeField]
@@ -24,7 +21,7 @@ public class DoorIsOpenedAndClosed : MonoBehaviour {
     private Transform doorClosed2;
 
     [SerializeField]
-    private bool doorIsOpened;
+    private bool doorAreOpened;
 
     [SerializeField]
     private float openingSpeed = 2.0f;
@@ -37,8 +34,7 @@ public class DoorIsOpenedAndClosed : MonoBehaviour {
     // Use this for initialization
     void Start()
     {
-        emergencyLights = GameObject.FindGameObjectWithTag("LightState").GetComponent<EmergencyLights>();
-        doorIsOpened = false;
+        doorAreOpened = false;
         thisDoor = this.gameObject;
         doorOpened1 = thisDoor.transform.Find("Position/opened1").GetComponent<Transform>();
         doorClosed1 = thisDoor.transform.Find("Position/closed1").GetComponent<Transform>();
@@ -49,8 +45,7 @@ public class DoorIsOpenedAndClosed : MonoBehaviour {
     // Update is called once per frame
     void Update()
     {
-        if(emergencyLights.GetLightState() != LightsState.Off)
-            ChangeDoorState();
+        ChangeDoorState();
     }
     #endregion
 
@@ -69,7 +64,7 @@ public class DoorIsOpenedAndClosed : MonoBehaviour {
 
     private void ChangeDoorState()
     {
-        if (doorIsOpened)
+        if (doorAreOpened)
         {
             DoorOpen();
         }
@@ -84,12 +79,12 @@ public class DoorIsOpenedAndClosed : MonoBehaviour {
     public void SetDoorIsOpened()
     {
         if(!doorShutdown)
-        this.doorIsOpened = !this.doorIsOpened;
+        this.doorAreOpened = !this.doorAreOpened;
     }
 
     public void SetDoorClosed()
     {
-        this.doorIsOpened = false;
+        this.doorAreOpened = false;
         doorShutdown = true;
     }
 
@@ -102,7 +97,7 @@ public class DoorIsOpenedAndClosed : MonoBehaviour {
     #region Getter
     public bool GetDoorIsOpened()
     {
-        return this.doorIsOpened;
+        return this.doorAreOpened;
     }
     #endregion
 

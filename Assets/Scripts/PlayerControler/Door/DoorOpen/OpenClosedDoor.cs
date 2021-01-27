@@ -9,10 +9,6 @@ public class OpenClosedDoor : MonoBehaviour {
     [SerializeField]
     private Camera playerView;
 
-    [Header("Emergency")]
-    [SerializeField]
-    private EmergencyLights emergencyLights;
-
     [Header("DoorIsOpenClass")]
     [SerializeField]
     private DoorIsOpenedAndClosed currentDoorTransform;
@@ -39,7 +35,6 @@ public class OpenClosedDoor : MonoBehaviour {
     // Use this for initialization
     void Start () {
         playerView = GetComponentInChildren<Camera>();
-        emergencyLights = GameObject.FindGameObjectWithTag("LightState").GetComponent<EmergencyLights>();
         leftMouseKeyDown = KeyCode.Mouse0;
     }
 	
@@ -64,13 +59,8 @@ public class OpenClosedDoor : MonoBehaviour {
                     currentButtonState = hit.collider.gameObject.GetComponent<ButtonClicked>();
                     currentDoorTransform = hit.collider.gameObject.GetComponentInParent<DoorIsOpenedAndClosed>();
                     doorOpenCloseSound = hit.collider.gameObject.GetComponentInParent<DoorOpenColseSound>();
-                    currentButtonState.ButtonClick();
                     doorOpenCloseSound.PlayClip();
-
-                    if (emergencyLights.GetLightState() != LightsState.Off)
-                    {
-                        currentDoorTransform.SetDoorIsOpened();
-                    }
+                    currentDoorTransform.SetDoorIsOpened();
                 }
             }
         }

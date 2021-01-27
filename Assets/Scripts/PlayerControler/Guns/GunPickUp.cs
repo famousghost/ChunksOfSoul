@@ -29,12 +29,6 @@ public class GunPickUp : MonoBehaviour {
     private GameObject bazookaToDestroy;
     #endregion
 
-    #region Other Class
-    [Header("Other Class")]
-    [SerializeField]
-    private GunShoot gunShoot;
-    #endregion
-
     #region SelectWeapon Enumerator
     [Header("Enumerators")]
     [SerializeField]
@@ -57,7 +51,6 @@ public class GunPickUp : MonoBehaviour {
     #region System Methods
     // Use this for initialization
     void Start () {
-        gunShoot = GameObject.Find("Player").GetComponent<GunShoot>();
         if(selectWeapon == SelectWeapon.machineGun)
         {
             machineGun = Resources.Load("Guns/MachineGun", typeof(GameObject)) as GameObject;
@@ -77,26 +70,6 @@ public class GunPickUp : MonoBehaviour {
 	void Update () {
         MachineGunAppear();
         BazookaAppear();
-    }
-    #endregion
-
-    #region PickUpWeapon
-    public void PickUpWeapon()
-    {
-        if (selectWeapon == SelectWeapon.machineGun)
-        {
-            gunShoot.SetHaveMachineGun(true);
-            gunShoot.SetMachineGunAmmo(50);
-            Destroy(machineGunToDestroy);
-            weaponIsPickedUp = true;
-        }
-        if(selectWeapon == SelectWeapon.bazooka)
-        {
-            gunShoot.SetHaveBazooka(true);
-            gunShoot.SetBazookaAmmo(3);
-            Destroy(bazookaToDestroy);
-            weaponIsPickedUp = true;
-        }
     }
     #endregion
 

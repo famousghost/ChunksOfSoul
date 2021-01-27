@@ -8,7 +8,8 @@ public enum PlayerStates
     PlayerIdle = 0,
     PlayerWalk,
     PlayerRun,
-    PlayerCrouch
+    PlayerCrouch,
+    PlayerClimbing
 }
 #endregion
 
@@ -89,11 +90,13 @@ public class PlayerControler : MonoBehaviour
 
     private const float MAXIMUMROTATIONEY = 80.0f;
 
-    private const float WALKSPEED = 3.0f;
+    private const float WALKSPEED = 6.0f;
 
-    private const float CROUCHSPEED = 1.0f;
+    private const float CROUCHSPEED = 2.5f;
 
-    private const float RUNSPEED = 5.0f;
+    private const float CLIMBINGSPEED = 3.0f;
+
+    private const float RUNSPEED = 10.0f;
 
     private const float MAXSTAMINA = 100.0f;
 
@@ -102,8 +105,10 @@ public class PlayerControler : MonoBehaviour
     private const float MAXDISTANCEOFRAY = 1.4f;
 
     private const float MAXDISTANCEOFGROUNDEDRAY = 1.7f;
+    #endregion
 
-
+    #region Bools
+    public bool isClimbing { get; set; }
     #endregion
 
     #region Player Float Variables
@@ -134,6 +139,7 @@ public class PlayerControler : MonoBehaviour
     // Use this for initialization
     void Start()
     {
+        isClimbing = false;
         stamina = MAXSTAMINA;
         rotateX = 0.0f;
         rotateZ = 0.0f;
@@ -237,6 +243,10 @@ public class PlayerControler : MonoBehaviour
                 movementSound.StopSound();
                 walkSpeed = CROUCHSPEED;
                 break;
+            case PlayerStates.PlayerClimbing:
+                StandUpAnimation();
+                walkSpeed = CLIMBINGSPEED;
+                break;
             default:
                 walkSpeed = 0.0f;
                 break;
@@ -304,22 +314,6 @@ public class PlayerControler : MonoBehaviour
     }
     #endregion
 
-    #region GunsTrigger
-    void OnTriggerEnter(Collider other)
-    {
-        if(other.gameObject.layer == LayerMask.NameToLayer("MachineGun"))
-        {
-            gunPickUp = other.GetComponent<GunPickUp>();
-            gunPickUp.PickUpWeapon();
-        }
-        if (other.gameObject.layer == LayerMask.NameToLayer("Bazooka"))
-        {
-            gunPickUp = other.GetComponent<GunPickUp>();
-            gunPickUp.PickUpWeapon();
-        }
-    }
-    #endregion
-
     #region ChangePlayerStates
     private void ChangePlayerStates()
     {
@@ -337,6 +331,10 @@ public class PlayerControler : MonoBehaviour
         else if (playerIsWalking)
         {
             playerStates = PlayerStates.PlayerWalk;
+        }
+        else if(isClimbing)
+        {
+            playerStates = PlayerStates.PlayerClimbing;
         }
         else
         {
