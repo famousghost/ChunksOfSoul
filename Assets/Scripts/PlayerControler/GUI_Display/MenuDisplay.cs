@@ -7,7 +7,6 @@ public class MenuDisplay : MonoBehaviour {
 
     #region Variables
     private bool cancelActive = false;
-    private bool settingsDisplayed = false;
     private bool controlsDisplayed = false;
 
     [SerializeField]
@@ -15,9 +14,6 @@ public class MenuDisplay : MonoBehaviour {
 
     [SerializeField]
     public GameObject gamePauseMain;
-
-    [SerializeField]
-    public GameObject gamePauseMainSettings;
 
     [SerializeField]
     public GameObject gamePauseMainControls;
@@ -37,7 +33,6 @@ public class MenuDisplay : MonoBehaviour {
 
     #region Start
     void Awake () {
-        gamePauseMainSettings.SetActive(false);
         gamePauseParent.SetActive(false);
         gamePauseMainControls.SetActive(false);
     }
@@ -45,20 +40,16 @@ public class MenuDisplay : MonoBehaviour {
 
     #region Update
     void Update () {
-        GamePause(0);
+        GamePause();
 	}
     #endregion
 
     #region GamePause
-    public void GamePause(int a)
+    public void GamePause()
     {
-        if (Input.GetKeyDown(KeyCode.Escape) || a > 0.0f)
+        if (Input.GetKeyDown(KeyCode.Escape))
         {
-            if (gamePauseMainSettings.active)
-            {
-                SettingsToggle();
-            }
-            else if (gamePauseMainControls.active)
+            if (gamePauseMainControls.activeSelf)
             {
                 ControlsToggle();
             }
@@ -76,15 +67,6 @@ public class MenuDisplay : MonoBehaviour {
         SceneManager.LoadScene("MainMenu");
         Destroy(player);
         Destroy(GameManager.instance.gameObject);
-    }
-    #endregion
-
-    #region SettingsTOGGLE
-    public void SettingsToggle()
-    {
-        gamePauseMain.SetActive(settingsDisplayed);
-        settingsDisplayed = !settingsDisplayed;
-        gamePauseMainSettings.SetActive(settingsDisplayed);
     }
     #endregion
 

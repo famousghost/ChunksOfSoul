@@ -101,7 +101,7 @@ public class PlayerControler : MonoBehaviour
 
     private const float MAXDISTANCEOFRAY = 1.4f;
 
-    private const float MAXDISTANCEOFGROUNDEDRAY = 1.2f;
+    private const float MAXDISTANCEOFGROUNDEDRAY = 1.7f;
 
 
     #endregion
@@ -118,7 +118,7 @@ public class PlayerControler : MonoBehaviour
     private float sensivity = 90.0f;
 
     [SerializeField]
-    private float jumpGravity = 230.0f;
+    private float jumpGravity = 190.0f;
 
     [SerializeField]
     private float rotationeY;
@@ -134,29 +134,31 @@ public class PlayerControler : MonoBehaviour
     // Use this for initialization
     void Start()
     {
-            stamina = MAXSTAMINA;
-            rigidBody = GetComponent<Rigidbody>();
-            keyInput = GetComponent<KeysInput>();
-            cam = GetComponentInChildren<Camera>();
-            Cursor.lockState = CursorLockMode.Locked;
-            mainCamPosition = cam.transform.localPosition;
-            playerSource = GameObject.FindGameObjectWithTag("AudioSource").GetComponent<AudioSource>();
-            movementSound = GetComponent<MovmentSound>();
+        stamina = MAXSTAMINA;
+        rotateX = 0.0f;
+        rotateZ = 0.0f;
+        rigidBody = GetComponent<Rigidbody>();
+        keyInput = GetComponent<KeysInput>();
+        cam = GetComponentInChildren<Camera>();
+        Cursor.lockState = CursorLockMode.Locked;
+        mainCamPosition = cam.transform.localPosition;
+        playerSource = GameObject.FindGameObjectWithTag("AudioSource").GetComponent<AudioSource>();
+        movementSound = GetComponent<MovmentSound>();
     }
 
     // Update is called once per frame
-    void FixedUpdate()
+    void Update()
     {
-            ChangePlayerStates();
-            CheckPlayerState();
-            LookSides();
-            CheckIfPlayerIsUnderTheColider();
-            Walking();
-            Exhaustion();
-            Rotatione();
-            LiftObject();
-            DoJump();
-            keyInput.Inputs();
+        keyInput.Inputs();
+        ChangePlayerStates();
+        CheckPlayerState();
+        LookSides();
+        CheckIfPlayerIsUnderTheColider();
+        Walking();
+        Exhaustion();
+        Rotatione();
+        LiftObject();
+        DoJump();
     }
     #endregion
 
@@ -195,7 +197,7 @@ public class PlayerControler : MonoBehaviour
         }
         else
         {
-            rotateX = Mathf.Lerp(rotateX, 0.0f, Time.deltaTime * 8.0f);
+            rotateX = Mathf.Lerp(rotateX, 0.0f, Time.deltaTime * 5.0f);
             rotationeX = Vector3.up * sensivity * keyInput.GetMouseX() * Time.deltaTime;
             rigidBody.transform.rotation *= Quaternion.Euler(rotationeX);
         }
@@ -282,28 +284,19 @@ public class PlayerControler : MonoBehaviour
     {
 
         var leftLook = keyInput.GetLeftSide() && (cam.transform.localPosition.x >= -0.5f);
-        var backFromLeft = !keyInput.GetLeftSide() && (cam.transform.localPosition.x < 0.0f);
         var rightLook = keyInput.GetRightSide() && (cam.transform.localPosition.x <= 0.5f);
-        var backFromRight = !keyInput.GetRightSide() && (cam.transform.localPosition.x > 0.0f);
-
         //Left Side
         if (leftLook)
         {
             cam.transform.localPosition = Vector3.Lerp(cam.transform.localPosition, new Vector3(cam.transform.localPosition.x - 0.5f, cam.transform.localPosition.y, cam.transform.localPosition.z), Time.deltaTime * 2.0f);
             rotateZ = Mathf.Lerp(rotateZ, 12.0f, Time.deltaTime * 5.0f);
         }
-        else if(backFromLeft)
-        {
-            cam.transform.localPosition = Vector3.Lerp(cam.transform.localPosition, new Vector3(mainCamPosition.x, cam.transform.localPosition.y, cam.transform.localPosition.z), Time.deltaTime * 3.0f);
-            rotateZ = Mathf.Lerp(rotateZ, 0.0f, Time.deltaTime * 5.0f);
-        }
-        //Right Side
         if (rightLook)
         {
             cam.transform.localPosition = Vector3.Lerp(cam.transform.localPosition, new Vector3(cam.transform.localPosition.x + 0.5f, cam.transform.localPosition.y, cam.transform.localPosition.z), Time.deltaTime * 2.0f);
             rotateZ = Mathf.Lerp(rotateZ, -12.0f, Time.deltaTime * 5.0f);
         }
-        else if (backFromRight)
+        else
         {
             cam.transform.localPosition = Vector3.Lerp(cam.transform.localPosition, new Vector3(mainCamPosition.x, cam.transform.localPosition.y, cam.transform.localPosition.z), Time.deltaTime * 3.0f);
             rotateZ = Mathf.Lerp(rotateZ, 0.0f, Time.deltaTime * 5.0f);
@@ -331,7 +324,7 @@ public class PlayerControler : MonoBehaviour
     private void ChangePlayerStates()
     {
         var playerIsWalking = (keyInput.GetWalkX() != 0 || keyInput.GetWalkY() != 0) && playerStates != PlayerStates.PlayerCrouch;
-        var playerCanRun = (keyInput.GetIsRunning() && canRun == true) && playerStates != PlayerStates.PlayerCrouch;
+        var playerCanRun = (keyInput.GetIsRunning() && canRun) && playerStates != PlayerStates.PlayerCrouch;
         var playerCanCrouch = (keyInput.GetIsCrouching()) && playerStates != PlayerStates.PlayerRun;
         if (playerCanRun)
         {
