@@ -74,7 +74,7 @@ public class ItemsPickUp : MonoBehaviour {
         //This algortim add a item to Array of Items
         for (int i=0;i<ELEMENTSOFARRAY;i++)
         {
-            item[i] = GameObject.Find("Item" + i.ToString()).GetComponent<Item>();
+            //item[i] = GameObject.Find("Item" + i.ToString()).GetComponent<Item>();
         }
 	}
 	

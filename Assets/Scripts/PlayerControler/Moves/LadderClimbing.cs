@@ -20,6 +20,10 @@ public class LadderClimbing : MonoBehaviour {
     #region Triggers
     void OnTriggerStay(Collider collider)
     {
+        if(playerBody.playerCharacter == PlayerCharacter.Monster)
+        {
+            return;
+        }
         if(collider.gameObject.layer == LayerMask.NameToLayer("Ladder"))
         {
             playerBody.GravityDisable();
@@ -38,6 +42,10 @@ public class LadderClimbing : MonoBehaviour {
 
     void OnTriggerExit(Collider collider)
     {
+        if (playerBody.playerCharacter == PlayerCharacter.Monster)
+        {
+            return;
+        }
         if (collider.gameObject.layer == LayerMask.NameToLayer("Ladder"))
         {
             playerBody.GravityEnable();

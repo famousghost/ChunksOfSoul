@@ -13,12 +13,25 @@ public enum PlayerStates
 }
 #endregion
 
+#region Character Enumerator
+public enum PlayerCharacter
+{
+    Human = 0,
+    Monster
+}
+#endregion
+
 public class PlayerControler : MonoBehaviour
 {
     #region PlayerState
     [Header("Player States Enum")]
     [SerializeField]
     PlayerStates playerStates;
+    #endregion
+
+    #region PlayerCharacter
+    [Header("Player Character Enum")]
+    public PlayerCharacter playerCharacter;
     #endregion
     //If we want to make a gun
     #region Guns
@@ -90,14 +103,6 @@ public class PlayerControler : MonoBehaviour
 
     private const float MAXIMUMROTATIONEY = 80.0f;
 
-    private const float WALKSPEED = 6.0f;
-
-    private const float CROUCHSPEED = 2.5f;
-
-    private const float CLIMBINGSPEED = 3.0f;
-
-    private const float RUNSPEED = 10.0f;
-
     private const float MAXSTAMINA = 100.0f;
 
     private const float MINSTAMINA = 0.0f;
@@ -105,6 +110,20 @@ public class PlayerControler : MonoBehaviour
     private const float MAXDISTANCEOFRAY = 1.4f;
 
     private const float MAXDISTANCEOFGROUNDEDRAY = 1.7f;
+
+    private const float CROUCHSPEED = 2.5f;
+
+    private const float CLIMBINGSPEED = 3.0f;
+    #endregion
+
+    #region Characters Stats
+
+    private float m_hp = 100.0f;
+
+    private float m_walkSpeed;
+
+    private float m_runSpeed;
+
     #endregion
 
     #region Bools
@@ -139,6 +158,16 @@ public class PlayerControler : MonoBehaviour
     // Use this for initialization
     void Start()
     {
+        if(playerCharacter == PlayerCharacter.Human)
+        {
+            m_walkSpeed = 4.0f;
+            m_runSpeed = 6.0f;
+        }
+        else
+        {
+            m_walkSpeed = 6.0f;
+            m_runSpeed = 9.0f;
+        }
         isClimbing = false;
         stamina = MAXSTAMINA;
         rotateX = 0.0f;
@@ -158,13 +187,16 @@ public class PlayerControler : MonoBehaviour
         keyInput.Inputs();
         ChangePlayerStates();
         CheckPlayerState();
-        LookSides();
-        CheckIfPlayerIsUnderTheColider();
         Walking();
-        Exhaustion();
         Rotatione();
-        LiftObject();
-        DoJump();
+        if (playerCharacter != PlayerCharacter.Monster)
+        {
+            LiftObject();
+            Exhaustion();
+            LookSides();
+            CheckIfPlayerIsUnderTheColider();
+            DoJump();
+        }
     }
     #endregion
 
@@ -228,7 +260,7 @@ public class PlayerControler : MonoBehaviour
                     movementSound.PlayWalkSound();
                 else
                     movementSound.StopSound();
-                walkSpeed = WALKSPEED;
+                walkSpeed = m_walkSpeed;
                 break;
             case PlayerStates.PlayerRun:
                 StandUpAnimation();
@@ -236,7 +268,7 @@ public class PlayerControler : MonoBehaviour
                     movementSound.PlayRunSound();
                 else
                     movementSound.StopSound();
-                walkSpeed = RUNSPEED;
+                walkSpeed = m_runSpeed;
                 break;
             case PlayerStates.PlayerCrouch:
                 CrouchAnimation();
@@ -324,7 +356,7 @@ public class PlayerControler : MonoBehaviour
         {
             playerStates = PlayerStates.PlayerRun;
         }
-        else if (playerCanCrouch)
+        else if (playerCanCrouch && playerCharacter != PlayerCharacter.Monster)
         {
             playerStates = PlayerStates.PlayerCrouch;
         }
@@ -332,7 +364,7 @@ public class PlayerControler : MonoBehaviour
         {
             playerStates = PlayerStates.PlayerWalk;
         }
-        else if(isClimbing)
+        else if(isClimbing && playerCharacter != PlayerCharacter.Monster)
         {
             playerStates = PlayerStates.PlayerClimbing;
         }
