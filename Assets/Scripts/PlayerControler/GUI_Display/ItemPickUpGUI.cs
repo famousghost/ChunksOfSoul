@@ -22,7 +22,7 @@ public class ItemPickUpGUI : MonoBehaviour {
     #region System Methods
     // Use this for initialization
     void Start () {
-        playerView = GetComponentInChildren<Camera>();
+
     }
     #endregion
 

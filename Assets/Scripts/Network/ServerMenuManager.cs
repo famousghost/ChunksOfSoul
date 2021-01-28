@@ -20,7 +20,7 @@ public class ServerMenuManager : MonoBehaviour
         {
             if(menus[i].menuName == menuName)
             {
-                openMenu(menus[i]);
+                menus[i].openMenu();
             }
             else if(menus[i].open)
             {

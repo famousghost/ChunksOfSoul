@@ -9,7 +9,7 @@ public class RoomListElement : MonoBehaviour
     [SerializeField]
     private TMP_Text roomName;
 
-    private RoomInfo roomInfo;
+    public RoomInfo roomInfo;
 
     public void addRoomButton(RoomInfo _roomInfo)
     {

@@ -22,9 +22,6 @@ public class MenuDisplay : MonoBehaviour {
     private PlayerControler playerControler;
 
     [SerializeField]
-    private ItemDisplay itemDisplay; //MARCIN TUTAJ! (i w linijce 107)
-
-    [SerializeField]
     private ItemsPickUp itemsPickUp;
 
     [SerializeField]
@@ -85,7 +82,6 @@ public class MenuDisplay : MonoBehaviour {
         gamePauseParent.SetActive(!cancelActive);
         playerControler.enabled = cancelActive;
         itemsPickUp.enabled = cancelActive;
-        itemDisplay.enabled = cancelActive;
 
         cancelActive = !cancelActive;
 

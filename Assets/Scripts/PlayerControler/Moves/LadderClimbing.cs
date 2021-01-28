@@ -20,6 +20,10 @@ public class LadderClimbing : MonoBehaviour {
     #region Triggers
     void OnTriggerStay(Collider collider)
     {
+        if(!playerBody.photonView.IsMine)
+        {
+            return;
+        }
         if(playerBody.playerCharacter == PlayerCharacter.Monster)
         {
             return;
@@ -42,6 +46,10 @@ public class LadderClimbing : MonoBehaviour {
 
     void OnTriggerExit(Collider collider)
     {
+        if (!playerBody.photonView.IsMine)
+        {
+            return;
+        }
         if (playerBody.playerCharacter == PlayerCharacter.Monster)
         {
             return;

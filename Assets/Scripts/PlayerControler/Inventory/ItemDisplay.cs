@@ -29,6 +29,7 @@ public class ItemDisplay : MonoBehaviour {
 
     //Start and Update
     #region Unity system methods
+
     // Use this for initialization
     void Start () {
         playerControler = GetComponentInParent<PlayerControler>();

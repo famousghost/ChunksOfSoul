@@ -13,6 +13,9 @@ public class Luncher : MonoBehaviourPunCallbacks
     private TMP_InputField roomNameinputField;
 
     [SerializeField]
+    private TMP_InputField playerNickNameinputField;
+
+    [SerializeField]
     private TMP_Text joinRoomErrorMessage;
 
     [SerializeField]
@@ -24,14 +27,28 @@ public class Luncher : MonoBehaviourPunCallbacks
     [SerializeField]
     private GameObject roomListObj;
 
+    [SerializeField]
+    private Transform playerListContent;
+
+    [SerializeField]
+    private GameObject playerListObj;
+
+    [SerializeField]
+    private GameObject startButton;
+
+    [SerializeField]
+    private bool nickNameCreated;
+
     private void Awake()
     {
+        nickNameCreated = false;
         instance = this;
     }
 
     // Start is called before the first frame update
     void Start()
     {
+        startButton.SetActive(false);
         Debug.Log("Yeah connecting to the master");
         PhotonNetwork.ConnectUsingSettings();
     }
@@ -40,12 +57,36 @@ public class Luncher : MonoBehaviourPunCallbacks
     {
         Debug.Log("Yeah connected to master");
         PhotonNetwork.JoinLobby();
+        PhotonNetwork.AutomaticallySyncScene = true;
+    }
+
+    public override void OnMasterClientSwitched(Player newMasterClient)
+    {
+        startButton.SetActive(PhotonNetwork.IsMasterClient);
     }
 
     public override void OnJoinedLobby()
     {
-        ServerMenuManager.instance.openMenu("MainMenu");
+        if (!nickNameCreated)
+        {
+            ServerMenuManager.instance.openMenu("NickNameCreation");
+            nickNameCreated = true;
+        }
+        else
+        {
+            ServerMenuManager.instance.openMenu("MainMenu");
+        }
         Debug.Log("Yeah hurray joined the lobby");
+    }
+
+    public void addNickName()
+    {
+        if (string.IsNullOrEmpty(playerNickNameinputField.text))
+        {
+            return;
+        }
+        PhotonNetwork.NickName = playerNickNameinputField.text;
+        ServerMenuManager.instance.openMenu("MainMenu");
     }
 
     public void createRoom()
@@ -57,6 +98,11 @@ public class Luncher : MonoBehaviourPunCallbacks
         PhotonNetwork.CreateRoom(roomNameinputField.text);
         roomNameTmpText.text = roomNameinputField.text;
         ServerMenuManager.instance.openMenu("Connecting");
+    }
+
+    public void StartGame()
+    {
+        PhotonNetwork.LoadLevel(1);
     }
 
     public void leaveRoom()
@@ -78,8 +124,20 @@ public class Luncher : MonoBehaviourPunCallbacks
 
     public override void OnJoinedRoom()
     {
+        Player[] playerList = PhotonNetwork.PlayerList;
+
+        foreach(Transform player in playerListContent)
+        {
+            Destroy(player.gameObject);
+        }
+
+        for (int i = 0; i < playerList.Length; i++)
+        {
+            Instantiate(playerListObj, playerListContent).GetComponent<PlayerListElement>().addPlayerNameToList(playerList[i]);
+        }
         roomNameTmpText.text = roomNameinputField.text;
         ServerMenuManager.instance.openMenu("RoomMenu");
+        startButton.SetActive(PhotonNetwork.IsMasterClient);
     }
 
     public override void OnCreateRoomFailed(short returnCode, string message)
@@ -96,7 +154,14 @@ public class Luncher : MonoBehaviourPunCallbacks
         }
         for (int i = 0; i < roomList.Count; i++)
         {
+            if (roomList[i].RemovedFromList)
+                continue;
             Instantiate(roomListObj, roomListContent).GetComponent<RoomListElement>().addRoomButton(roomList[i]);
         }
+    }
+
+    public override void OnPlayerEnteredRoom(Player newPlayer)
+    {
+        Instantiate(playerListObj, playerListContent).GetComponent<PlayerListElement>().addPlayerNameToList(newPlayer);
     }
 }

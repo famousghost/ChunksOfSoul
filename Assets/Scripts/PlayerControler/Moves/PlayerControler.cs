@@ -1,6 +1,7 @@
 ﻿using UnityEngine;
 using System.Collections;
 using UnityEngine.Networking;
+using Photon.Pun;
 
 #region PlayerState Enumerator
 public enum PlayerStates
@@ -28,6 +29,8 @@ public class PlayerControler : MonoBehaviour
     [SerializeField]
     PlayerStates playerStates;
     #endregion
+
+    public PhotonView photonView;
 
     #region PlayerCharacter
     [Header("Player Character Enum")]
@@ -124,6 +127,8 @@ public class PlayerControler : MonoBehaviour
 
     private float m_runSpeed;
 
+    public bool cameraSet;
+
     #endregion
 
     #region Bools
@@ -155,10 +160,20 @@ public class PlayerControler : MonoBehaviour
     #endregion
 
     #region System Methods
+    void Awake()
+    {
+        photonView = GetComponent<PhotonView>();
+    }
+
     // Use this for initialization
     void Start()
     {
-        if(playerCharacter == PlayerCharacter.Human)
+        if(!photonView.IsMine)
+        {
+            GetComponentInChildren<Camera>().targetDisplay++;
+            return;
+        }
+        if (playerCharacter == PlayerCharacter.Human)
         {
             m_walkSpeed = 4.0f;
             m_runSpeed = 6.0f;
@@ -174,7 +189,6 @@ public class PlayerControler : MonoBehaviour
         rotateZ = 0.0f;
         rigidBody = GetComponent<Rigidbody>();
         keyInput = GetComponent<KeysInput>();
-        cam = GetComponentInChildren<Camera>();
         Cursor.lockState = CursorLockMode.Locked;
         mainCamPosition = cam.transform.localPosition;
         playerSource = GameObject.FindGameObjectWithTag("AudioSource").GetComponent<AudioSource>();
@@ -184,6 +198,10 @@ public class PlayerControler : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
+        if(!photonView.IsMine)
+        {
+            return;
+        }
         keyInput.Inputs();
         ChangePlayerStates();
         CheckPlayerState();

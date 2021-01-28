@@ -34,7 +34,6 @@ public class OpenClosedDoor : MonoBehaviour {
     #region Unity System Methods
     // Use this for initialization
     void Start () {
-        playerView = GetComponentInChildren<Camera>();
         leftMouseKeyDown = KeyCode.Mouse0;
     }
 	
