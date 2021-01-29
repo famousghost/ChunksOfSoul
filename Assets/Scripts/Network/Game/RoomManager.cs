@@ -4,6 +4,7 @@ using UnityEngine;
 using Photon.Pun;
 using UnityEngine.SceneManagement;
 using System.IO;
+using Photon.Realtime;
 
 public class RoomManager : MonoBehaviourPunCallbacks
 {
@@ -15,10 +16,8 @@ public class RoomManager : MonoBehaviourPunCallbacks
     {
         if(instance)
         {
-            Destroy(gameObject);
-            return;
+            Destroy(instance);
         }
-        DontDestroyOnLoad(gameObject);
         instance = this;
     }
 
@@ -39,11 +38,5 @@ public class RoomManager : MonoBehaviourPunCallbacks
         {
             PhotonNetwork.Instantiate(Path.Combine("PhotonPrefab", "PlayerManager"), Vector3.zero, Quaternion.identity);
         }
-    }
-
-    // Update is called once per frame
-    void Update()
-    {
-        
     }
 }

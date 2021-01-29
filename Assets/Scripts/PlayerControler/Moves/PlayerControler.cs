@@ -129,6 +129,8 @@ public class PlayerControler : MonoBehaviour
 
     public bool cameraSet;
 
+    public float stunTime = 0.0f;
+
     #endregion
 
     #region Bools
@@ -202,10 +204,18 @@ public class PlayerControler : MonoBehaviour
         {
             return;
         }
+
         keyInput.Inputs();
         ChangePlayerStates();
         CheckPlayerState();
-        Walking();
+        if (stunTime > 0.0f && playerCharacter == PlayerCharacter.Monster)
+        {
+            stunTime -= Time.deltaTime;
+        }
+        if (stunTime <= 0.0f)
+        {
+            Walking();
+        }
         Rotatione();
         if (playerCharacter != PlayerCharacter.Monster)
         {
