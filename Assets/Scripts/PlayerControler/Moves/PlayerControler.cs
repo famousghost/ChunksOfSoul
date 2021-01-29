@@ -35,6 +35,7 @@ public class PlayerControler : MonoBehaviour
 
     public Score score;
     public PlayerTaken playerTaken;
+    public SpawnSpiritChunks SpawnSpiritChunks;
 
     #region PlayerCharacter
     [Header("Player Character Enum")]
@@ -181,6 +182,7 @@ public class PlayerControler : MonoBehaviour
         }
         score = GameObject.Find("RoomManager").GetComponent<Score>();
         playerTaken = GameObject.Find("RoomManager").GetComponent<PlayerTaken>();
+        SpawnSpiritChunks = GameObject.Find("RoomManager").GetComponent<SpawnSpiritChunks>();
         if (playerCharacter == PlayerCharacter.Human)
         {
             m_walkSpeed = 4.0f;
@@ -230,6 +232,7 @@ public class PlayerControler : MonoBehaviour
     {
         photonView.RPC("RPC_Gameover", RpcTarget.All);
         score.spiritChunkCounter = 0;
+        SpawnSpiritChunks.spawnChunks();
     }
 
     // Update is called once per frame

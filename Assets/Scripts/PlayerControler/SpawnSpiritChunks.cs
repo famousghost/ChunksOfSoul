@@ -12,6 +12,35 @@ public class SpawnSpiritChunks : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
+        spawnChunks();
+    }
+
+    void activeSpiritChunks(GameObject[] array)
+    {
+        foreach(GameObject obj in array)
+        {
+            obj.SetActive(true);
+        }
+    }
+
+    public void spawnChunks()
+    {
+        foreach(GameObject obj in objectToSpawnList1)
+        {
+            obj.SetActive(false);
+        }
+        foreach (GameObject obj in objectToSpawnList2)
+        {
+            obj.SetActive(false);
+        }
+        foreach (GameObject obj in objectToSpawnList3)
+        {
+            obj.SetActive(false);
+        }
+        foreach (GameObject obj in objectToSpawnList4)
+        {
+            obj.SetActive(false);
+        }
         int rnd = Random.Range(0, 201);
 
         if (rnd <= 50)
@@ -29,14 +58,6 @@ public class SpawnSpiritChunks : MonoBehaviour
         if (rnd > 150 && rnd <= 200)
         {
             activeSpiritChunks(objectToSpawnList4);
-        }
-    }
-
-    void activeSpiritChunks(GameObject[] array)
-    {
-        foreach(GameObject obj in array)
-        {
-            obj.SetActive(true);
         }
     }
 }
