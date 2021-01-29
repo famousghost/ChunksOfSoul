@@ -86,9 +86,6 @@ public class PlayerControler : MonoBehaviour
     private bool canLift = true;
 
     [SerializeField]
-    private bool canJump = true;
-
-    [SerializeField]
     private bool playerCanStand = true;
 
     [SerializeField]
@@ -153,10 +150,7 @@ public class PlayerControler : MonoBehaviour
     private float stamina;
 
     [SerializeField]
-    private float sensivity = 90.0f;
-
-    [SerializeField]
-    private float jumpGravity = 190.0f;
+    private float sensivity = 300.0f;
 
     [SerializeField]
     private float rotationeY;
@@ -218,7 +212,7 @@ public class PlayerControler : MonoBehaviour
         }
     }
 
-    void OnCollisionEnter(Collision col)
+    void OnCollisionStay(Collision col)
     {
         if(!photonView.IsMine)
         {
@@ -269,7 +263,6 @@ public class PlayerControler : MonoBehaviour
             Exhaustion();
             LookSides();
             CheckIfPlayerIsUnderTheColider();
-            DoJump();
         }
     }
     #endregion
@@ -472,29 +465,6 @@ public class PlayerControler : MonoBehaviour
     #endregion
 
     #region Jumping
-    private void DoJump()
-    {
-        Vector3 jumper;
-        PlayerIsOnGrounded();
-        var playerCanJump = keyInput.GetIsJupming() && keyInput.GetOnGrounded() && canJump && playerStates != PlayerStates.PlayerCrouch;
-        if (playerCanJump)
-        {
-            keyInput.SetOnGrounded(false);
-            playerSource.PlayOneShot(movementSound.GetJumpSound());
-            jumper = Vector3.up * jumpGravity * Time.deltaTime;
-            rigidBody.AddForce(jumper, ForceMode.Impulse);
-        }
-    }
-
-    void OnCollisionExit(Collision collision)
-    {
-        canJump = false;
-    }
-
-    void OnCollisionStay(Collision collision)
-    {
-        canJump = true;
-    }
 
     private void PlayerIsOnGrounded()
     {

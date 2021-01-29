@@ -42,9 +42,6 @@ public class KeysInput : MonoBehaviour {
     private bool isRunning = false;
 
     [SerializeField]
-    private bool isJumping = false;
-
-    [SerializeField]
     private bool onGrounded = true;
 
     [SerializeField]
@@ -68,7 +65,6 @@ public class KeysInput : MonoBehaviour {
         walkY = Input.GetAxis("Vertical");
         mouseX = Input.GetAxis("Mouse X");
         mouseY = Input.GetAxis("Mouse Y");
-        isJumping = Input.GetKeyDown(jump);
         isRunning = Input.GetKey(run);
         isLiftetd = Input.GetKey(lifting);
         if (!rightLook)
@@ -103,11 +99,6 @@ public class KeysInput : MonoBehaviour {
     public float GetMouseY()
     {
         return mouseY;
-    }
-
-    public bool GetIsJupming()
-    {
-        return isJumping;
     }
 
     public bool GetIsRunning()
