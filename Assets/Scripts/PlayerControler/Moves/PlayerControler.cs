@@ -32,6 +32,8 @@ public class PlayerControler : MonoBehaviour
 
     public PhotonView photonView;
 
+    public Score score;
+
     #region PlayerCharacter
     [Header("Player Character Enum")]
     public PlayerCharacter playerCharacter;
@@ -143,6 +145,9 @@ public class PlayerControler : MonoBehaviour
     private float walkSpeed;
 
     [SerializeField]
+    private PlayerManager playerManager;
+
+    [SerializeField]
     private float stamina;
 
     [SerializeField]
@@ -161,6 +166,8 @@ public class PlayerControler : MonoBehaviour
     private float rotateZ;
     #endregion
 
+    public int spiritChunkConuter;
+
     #region System Methods
     void Awake()
     {
@@ -170,9 +177,11 @@ public class PlayerControler : MonoBehaviour
     // Use this for initialization
     void Start()
     {
-        if(!photonView.IsMine)
+        score = GameObject.Find("RoomManager").GetComponent<Score>();
+        playerManager = PhotonView.Find((int)photonView.InstantiationData[0]).GetComponent<PlayerManager>();
+        if (!photonView.IsMine)
         {
-            GetComponentInChildren<Camera>().targetDisplay++;
+            GetComponentInChildren<Camera>().targetDisplay=2;
             return;
         }
         if (playerCharacter == PlayerCharacter.Human)
@@ -193,14 +202,44 @@ public class PlayerControler : MonoBehaviour
         keyInput = GetComponent<KeysInput>();
         Cursor.lockState = CursorLockMode.Locked;
         mainCamPosition = cam.transform.localPosition;
-        playerSource = GameObject.FindGameObjectWithTag("AudioSource").GetComponent<AudioSource>();
         movementSound = GetComponent<MovmentSound>();
+    }
+
+    void OnTriggerEnter(Collider col)
+    {
+        if (col.gameObject.tag == "ItemToPickUp" && playerCharacter == PlayerCharacter.Human)
+        {
+            Destroy(col.gameObject);
+            score.spiritChunkCounter++;
+            Debug.Log(score.spiritChunkCounter);
+        }
+    }
+
+    void OnCollsionEnter(Collision col)
+    {
+        if (col.gameObject.tag == "Monster" || col.gameObject.tag == "Monster")
+        {
+            Debug.Log("Monster Catch human");
+
+            resetGame();
+        }
+    }
+
+    public void resetGame()
+    {
+        photonView.RPC("RPC_Gameover", RpcTarget.All);
+        score.spiritChunkCounter = 0;
     }
 
     // Update is called once per frame
     void Update()
     {
-        if(!photonView.IsMine)
+        if (score.spiritChunkCounter >= 7)
+        {
+            resetGame();
+        }
+
+        if (!photonView.IsMine)
         {
             return;
         }
@@ -208,11 +247,11 @@ public class PlayerControler : MonoBehaviour
         keyInput.Inputs();
         ChangePlayerStates();
         CheckPlayerState();
-        if (stunTime > 0.0f && playerCharacter == PlayerCharacter.Monster)
+        if (stunTime > 0.0f)
         {
             stunTime -= Time.deltaTime;
         }
-        if (stunTime <= 0.0f)
+        if (stunTime <= 0)
         {
             Walking();
         }
@@ -227,6 +266,16 @@ public class PlayerControler : MonoBehaviour
         }
     }
     #endregion
+
+    [PunRPC]
+    void RPC_Gameover()
+    {
+        if(!photonView.IsMine)
+        {
+            return;
+        }
+        playerManager.gameover();
+    }
 
     #region WalkMethods
     private void Walking()
@@ -272,6 +321,7 @@ public class PlayerControler : MonoBehaviour
         cam.transform.localRotation = Quaternion.Euler(rotationeY, rotateX, rotateZ);
     }
     #endregion
+
 
     #region CheckPlayerStates
     private void CheckPlayerState()

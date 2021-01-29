@@ -62,7 +62,26 @@ public class Luncher : MonoBehaviourPunCallbacks
 
     public override void OnMasterClientSwitched(Player newMasterClient)
     {
-        startButton.SetActive(PhotonNetwork.IsMasterClient);
+        bool monster = false;
+        bool human = false;
+        if (PhotonNetwork.PlayerList.Length == 2)
+        {
+            foreach(Player player in PhotonNetwork.PlayerList)
+            {
+                if(player.NickName == "Human")
+                {
+                    human = true;
+                }
+                if(player.NickName == "Monster")
+                {
+                    monster = true;
+                }
+            }
+            if (monster && human)
+            {
+                startButton.SetActive(PhotonNetwork.IsMasterClient);
+            }
+        }
     }
 
     public override void OnJoinedLobby()
@@ -79,13 +98,23 @@ public class Luncher : MonoBehaviourPunCallbacks
         Debug.Log("Yeah hurray joined the lobby");
     }
 
-    public void addNickName()
+    public void addHuman()
     {
-        if (string.IsNullOrEmpty(playerNickNameinputField.text))
+        addNickName("Human");
+    }
+
+    public void addMonster()
+    {
+        addNickName("Monster");
+    }
+
+    public void addNickName(string nickname)
+    {
+        if (string.IsNullOrEmpty(nickname))
         {
             return;
         }
-        PhotonNetwork.NickName = playerNickNameinputField.text;
+        PhotonNetwork.NickName = nickname;
         ServerMenuManager.instance.openMenu("MainMenu");
     }
 
@@ -102,7 +131,26 @@ public class Luncher : MonoBehaviourPunCallbacks
 
     public void StartGame()
     {
-        PhotonNetwork.LoadLevel(1);
+        bool monster = false;
+        bool human = false;
+        if (PhotonNetwork.PlayerList.Length == 2)
+        {
+            foreach (Player player in PhotonNetwork.PlayerList)
+            {
+                if (player.NickName == "Human")
+                {
+                    human = true;
+                }
+                if (player.NickName == "Monster")
+                {
+                    monster = true;
+                }
+            }
+            if (monster && human)
+            {
+                PhotonNetwork.LoadLevel(1);
+            }
+        }
     }
 
     public void leaveRoom()
@@ -137,6 +185,7 @@ public class Luncher : MonoBehaviourPunCallbacks
         }
         roomNameTmpText.text = roomNameinputField.text;
         ServerMenuManager.instance.openMenu("RoomMenu");
+
         startButton.SetActive(PhotonNetwork.IsMasterClient);
     }
 
