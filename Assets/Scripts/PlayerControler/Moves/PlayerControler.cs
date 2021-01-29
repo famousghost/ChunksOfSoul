@@ -2,6 +2,7 @@
 using System.Collections;
 using UnityEngine.Networking;
 using Photon.Pun;
+using Photon.Realtime;
 
 #region PlayerState Enumerator
 public enum PlayerStates
@@ -33,6 +34,7 @@ public class PlayerControler : MonoBehaviour
     public PhotonView photonView;
 
     public Score score;
+    public PlayerTaken playerTaken;
 
     #region PlayerCharacter
     [Header("Player Character Enum")]
@@ -177,13 +179,14 @@ public class PlayerControler : MonoBehaviour
     // Use this for initialization
     void Start()
     {
-        score = GameObject.Find("RoomManager").GetComponent<Score>();
         playerManager = PhotonView.Find((int)photonView.InstantiationData[0]).GetComponent<PlayerManager>();
         if (!photonView.IsMine)
         {
             GetComponentInChildren<Camera>().targetDisplay=2;
             return;
         }
+        score = GameObject.Find("RoomManager").GetComponent<Score>();
+        playerTaken = GameObject.Find("RoomManager").GetComponent<PlayerTaken>();
         if (playerCharacter == PlayerCharacter.Human)
         {
             m_walkSpeed = 4.0f;
@@ -209,18 +212,22 @@ public class PlayerControler : MonoBehaviour
     {
         if (col.gameObject.tag == "ItemToPickUp" && playerCharacter == PlayerCharacter.Human)
         {
-            Destroy(col.gameObject);
+            col.gameObject.SetActive(false);
             score.spiritChunkCounter++;
             Debug.Log(score.spiritChunkCounter);
         }
     }
 
-    void OnCollsionEnter(Collision col)
+    void OnCollisionEnter(Collision col)
     {
-        if (col.gameObject.tag == "Monster" || col.gameObject.tag == "Monster")
+        if(!photonView.IsMine)
+        {
+            return;
+        }
+        if (col.gameObject.tag == "Monster" || col.gameObject.tag == "Player")
         {
             Debug.Log("Monster Catch human");
-
+            playerTaken.take = true;
             resetGame();
         }
     }
@@ -234,14 +241,14 @@ public class PlayerControler : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        if (score.spiritChunkCounter >= 7)
-        {
-            resetGame();
-        }
-
         if (!photonView.IsMine)
         {
             return;
+        }
+
+        if (score.spiritChunkCounter >= 7)
+        {
+            resetGame();
         }
 
         keyInput.Inputs();
@@ -273,6 +280,17 @@ public class PlayerControler : MonoBehaviour
         if(!photonView.IsMine)
         {
             return;
+        }
+        if(playerTaken.take)
+        {
+            if(photonView.Owner.NickName == "Human")
+            {
+                photonView.Owner.NickName = "Monster";
+            }
+            else
+            {
+                photonView.Owner.NickName = "Human";
+            }
         }
         playerManager.gameover();
     }

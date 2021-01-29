@@ -3,24 +3,24 @@ using System.Collections.Generic;
 using UnityEngine;
 using Photon.Pun;
 
-public class Score : MonoBehaviour, IPunObservable
+public class PlayerTaken : MonoBehaviour, IPunObservable
 {
-    public int spiritChunkCounter;
+    public bool take;
 
     void Awake()
     {
-        spiritChunkCounter = 0;
+        take = false;
     }
 
     void IPunObservable.OnPhotonSerializeView(PhotonStream stream, PhotonMessageInfo info)
     {
         if (stream.IsWriting)
         {
-            stream.SendNext(spiritChunkCounter);
+            stream.SendNext(take);
         }
         else
         {
-            spiritChunkCounter = (int)stream.ReceiveNext();
+            take = (bool)stream.ReceiveNext();
         }
     }
 }
