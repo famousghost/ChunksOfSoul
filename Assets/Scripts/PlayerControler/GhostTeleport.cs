@@ -27,6 +27,10 @@ public class GhostTeleport : MonoBehaviour
 
     void Keys()
     {
+        if(playerController.playerCharacter == PlayerCharacter.Human)
+        {
+            return;
+        }
         if (Input.GetKeyDown(KeyCode.Alpha1))
         {
             transform.position = ghostTeleportTransform[0].transform.position;

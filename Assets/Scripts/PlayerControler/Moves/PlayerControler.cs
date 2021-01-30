@@ -33,11 +33,16 @@ public class PlayerControler : MonoBehaviour, IPunObservable
 
     public PhotonView photonView;
 
-    public Score score;
-    public PlayerTaken playerTaken;
     public SpawnSpiritChunks SpawnSpiritChunks;
+    public Score score;
 
     public int rnd;
+    public bool taken;
+    public bool playerDied;
+    public bool ladderBoardUpdated;
+    public int scorePlayer1;
+    public int scorePlayer2;
+    public Canvas monsterCanvas;
 
     #region PlayerCharacter
     [Header("Player Character Enum")]
@@ -165,28 +170,40 @@ public class PlayerControler : MonoBehaviour, IPunObservable
     private float rotateZ;
     #endregion
 
-    public int spiritChunkConuter;
+    public int spiritChunkCounter;
 
     #region System Methods
     void Awake()
     {
         photonView = GetComponent<PhotonView>();
+        scorePlayer1 = 0;
+        scorePlayer2 = 0;
     }
 
     // Use this for initialization
     void Start()
     {
-        rnd = Random.Range(0, 200);
+        ladderBoardUpdated = false;
+        playerDied = false;
+        rnd = Random.Range(0, 201);
+        photonView.RPC("RPC_randomSpiritChunkPositions", RpcTarget.All, new object[] { rnd });
         playerManager = PhotonView.Find((int)photonView.InstantiationData[0]).GetComponent<PlayerManager>();
-        score = GameObject.Find("RoomManager").GetComponent<Score>();
-        playerTaken = GameObject.Find("RoomManager").GetComponent<PlayerTaken>();
-        SpawnSpiritChunks = GameObject.Find("RoomManager").GetComponent<SpawnSpiritChunks>();
         if (!photonView.IsMine)
         {
             GetComponentInChildren<Camera>().targetDisplay=2;
             return;
         }
-        playerTaken.take = false;
+
+        if (playerCharacter == PlayerCharacter.Ghost)
+        {
+            monsterCanvas = GameObject.FindGameObjectWithTag("MonsterCanvas").GetComponent<Canvas>();
+            enableMosterCanvas();
+        }
+
+        SpawnSpiritChunks = GameObject.Find("RoomManager").GetComponent<SpawnSpiritChunks>();
+        score = GameObject.Find("RoomManager").GetComponent<Score>();
+        taken = false;
+        spiritChunkCounter = 0;
         if (playerCharacter == PlayerCharacter.Human)
         {
             m_walkSpeed = 4.0f;
@@ -208,51 +225,119 @@ public class PlayerControler : MonoBehaviour, IPunObservable
         movementSound = GetComponent<MovmentSound>();
     }
 
+    void enableMosterCanvas()
+    {
+        monsterCanvas.enabled = true;
+    }
+
     void OnTriggerEnter(Collider col)
     {
         if (col.gameObject.tag == "ItemToPickUp" && playerCharacter == PlayerCharacter.Human)
         {
             col.gameObject.SetActive(false);
-            score.spiritChunkCounter++;
-            Debug.Log(score.spiritChunkCounter);
+            spiritChunkCounter++;
+            photonView.RPC("RPC_updateSpiritChunk", RpcTarget.All, new object[] { spiritChunkCounter });
         }
     }
 
     void OnCollisionEnter(Collision col)
     {
+        if (col.gameObject.tag == "Monster" || col.gameObject.tag == "Player")
+        {
+            Debug.Log("Monster Catch human");
+            taken = true;
+            if(playerCharacter == PlayerCharacter.Human)
+            {
+                playerDied = true;
+            }
+            photonView.RPC("RPC_setPLayerHasBeenTaken", RpcTarget.All, new object[] { taken });
+        }
+    }
+
+    [PunRPC]
+    public void RPC_setPLayerHasBeenTaken(bool isTaken)
+    {
         if(!photonView.IsMine)
         {
             return;
         }
-        if (col.gameObject.tag == "Monster" || col.gameObject.tag == "Player")
+        taken = isTaken;
+    }
+
+    [PunRPC]
+    public void RPC_randomSpiritChunkPositions(int newRnd)
+    {
+        if(!photonView.IsMine)
         {
-            Debug.Log("Monster Catch human");
-            playerTaken.take = true;
+            return;
         }
+        rnd = newRnd;
+    }
+
+    [PunRPC]
+    public void RPC_updateSpiritChunk(int spiricChunk)
+    {
+        if(!photonView.IsMine)
+        {
+            return;
+        }
+        score.spiritChunkCounter = spiricChunk;
     }
 
     public void resetGame()
     {
-        photonView.RPC("RPC_Gameover", RpcTarget.All);
+        spiritChunkCounter = 0;
         score.spiritChunkCounter = 0;
+        photonView.RPC("RPC_updateSpiritChunk", RpcTarget.All, new object[] { spiritChunkCounter });
+        Player player = PhotonNetwork.PlayerListOthers[0];
+        Debug.Log("Gracz: " + player.NickName);
+        scorePlayer1 = 0;
+        scorePlayer2 = 0;
+        if (!player.IsLocal)
+        {
+            if (taken)
+            {
+                if (player.NickName == "Human")
+                {
+                    Debug.Log("pierwszy gracz byl potworem Taken = " + taken);
+                    scorePlayer1 = 100;
+                }
+                else
+                {
+                    Debug.Log("drugi gracz byl potworem Taken = " + taken);
+                    scorePlayer2 = 100;
+                }
+            }
+            else
+            {
+                if (player.NickName == "Human")
+                {
+                    Debug.Log("pierwszy gracz byl potworem Taken = " + taken);
+                    scorePlayer2 = 200;
+                }
+                else
+                {
+                    Debug.Log("drugi gracz byl potworem Taken = " + taken);
+                    scorePlayer1 = 200;
+                }
+            }
+        }
+        photonView.RPC("RPC_updateLadderBoard", RpcTarget.All, new object[] { scorePlayer1, scorePlayer2 });
+        Debug.Log("score.scorePlayer1 = " + score.scorePlayer1);
+        Debug.Log("score.scorePlayer2 = " + score.scorePlayer2);
+        photonView.RPC("RPC_Gameover", RpcTarget.All);
     }
 
-    // Update is called once per frame
     void Update()
     {
-        if (score.spiritChunkCounter >= 7 || playerTaken.take)
-        {
-            float counter = 5.0f;
-            while(counter > 0.0f)
-            {
-                counter -= Time.deltaTime;
-            }
-            resetGame();
-        }
-
         if (!photonView.IsMine)
         {
             return;
+        }
+
+        if (score.spiritChunkCounter >= 7 || taken)
+        {
+            resetGame();
         }
 
         keyInput.Inputs();
@@ -278,6 +363,17 @@ public class PlayerControler : MonoBehaviour, IPunObservable
     #endregion
 
     [PunRPC]
+    void RPC_updateLadderBoard(int scP1, int scP2)
+    {
+        if(!photonView.IsMine)
+        {
+            return;
+        }
+        score.scorePlayer1 += scP1;
+        score.scorePlayer2 += scP2;
+    }
+
+    [PunRPC]
     void RPC_Gameover()
     {
         if (!photonView.IsMine)
@@ -285,7 +381,7 @@ public class PlayerControler : MonoBehaviour, IPunObservable
             return;
         }
         SpawnSpiritChunks.spawnChunks(rnd);
-        if (playerTaken.take)
+        if (taken)
         {
             foreach (Player player in PhotonNetwork.PlayerList)
             {
@@ -529,10 +625,8 @@ public class PlayerControler : MonoBehaviour, IPunObservable
     {
         RaycastHit hit;
 
-        //Vector3 skierowany z kamery
         Vector3 forward = cam.transform.forward;
 
-        //promien puszczony wprost z kamery na przod
         Ray ray = new Ray(cam.transform.position, forward);
 
 
@@ -544,7 +638,6 @@ public class PlayerControler : MonoBehaviour, IPunObservable
 
 
             gameObj.useGravity = false;
-            //Freezowanie rotacji i pozycji tylko y i z
             gameObj.constraints = RigidbodyConstraints.FreezeAll;
         }
 
@@ -627,10 +720,19 @@ public class PlayerControler : MonoBehaviour, IPunObservable
         if (stream.IsWriting)
         {
             stream.SendNext(rnd);
+            stream.SendNext(score.spiritChunkCounter);
+            stream.SendNext(taken);
+            stream.SendNext(score.scorePlayer1);
+            stream.SendNext(score.scorePlayer2);
         }
         else
         {
+            score = GameObject.Find("RoomManager").GetComponent<Score>();
             rnd = (int)stream.ReceiveNext();
+            score.spiritChunkCounter = (int)stream.ReceiveNext();
+            taken = (bool)stream.ReceiveNext();
+            score.scorePlayer1 = (int)stream.ReceiveNext();
+            score.scorePlayer2 = (int)stream.ReceiveNext();
         }
     }
 

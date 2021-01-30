@@ -4,16 +4,21 @@ using UnityEngine;
 
 public class MonsterGui : MonoBehaviour
 {
-
+    [SerializeField]
+    private PlayerControler playerController;
+    public Canvas monsterCanvas;
     // Start is called before the first frame update
     void Start()
     {
-        
+        monsterCanvas = GameObject.FindGameObjectWithTag("MonsterCanvas").GetComponent<Canvas>();
+        if(playerController.playerCharacter == PlayerCharacter.Ghost)
+        {
+            enableMosterCanvas();
+        }
     }
 
-    // Update is called once per frame
-    void Update()
+    void enableMosterCanvas()
     {
-        
+        monsterCanvas.enabled = true;
     }
 }

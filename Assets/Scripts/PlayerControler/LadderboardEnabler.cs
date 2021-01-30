@@ -6,8 +6,9 @@ public class LadderboardEnabler : MonoBehaviour
 {
     public Canvas ladderBoardCanvas;
 
-    public void canvasChangeState()
+    public void activeCanvas(bool value)
     {
-        ladderBoardCanvas.enabled = !ladderBoardCanvas.enabled;
+        Debug.Log("wcianales taba kurcze");
+        ladderBoardCanvas.enabled = value;
     }
 }
