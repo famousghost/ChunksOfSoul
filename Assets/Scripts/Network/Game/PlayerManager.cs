@@ -13,6 +13,8 @@ public class PlayerManager : MonoBehaviour
     public GameObject[] playerPos;
     public GameObject[] ghostPos;
     public GameObject playerController;
+    public Button menuLeaveBtn;
+    public Button gameoverLeaveBtn;
 
     private void Awake()
     {
@@ -25,7 +27,16 @@ public class PlayerManager : MonoBehaviour
         if (photonView.IsMine)
         {
             createController();
+            menuLeaveBtn = GameObject.FindGameObjectWithTag("MenuExitButton").GetComponent<Button>();
+            gameoverLeaveBtn = GameObject.FindGameObjectWithTag("GameOverExitButton").GetComponent<Button>();
+            menuLeaveBtn.onClick.AddListener(taskOnClick);
+            gameoverLeaveBtn.onClick.AddListener(taskOnClick);
         }
+    }
+
+    public void taskOnClick()
+    {
+        leaveRoom();
     }
 
     public Transform generateRndPos(GameObject[] posArray)
@@ -70,6 +81,14 @@ public class PlayerManager : MonoBehaviour
             Debug.Log("robie czleka");
             playerController = PhotonNetwork.Instantiate(Path.Combine("PhotonPrefab", "PlayerPrefab"), playerPosition.position, playerPosition.rotation, 0, new object[] { photonView.ViewID });
         }
+    }
+
+    public void leaveRoom()
+    {
+        PhotonNetwork.Destroy(playerController);
+        PhotonNetwork.Destroy(this.gameObject);
+        PhotonNetwork.LeaveRoom();
+        SceneManager.LoadScene(0);
     }
 
     public void gameover()

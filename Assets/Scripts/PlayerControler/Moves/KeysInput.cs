@@ -59,23 +59,26 @@ public class KeysInput : MonoBehaviour {
     #endregion
 
     #region InputsMethod
-    public void Inputs()
+    public void Inputs(PlayerCharacter playerCharacter)
     {
         walkX = Input.GetAxis("Horizontal");
         walkY = Input.GetAxis("Vertical");
         mouseX = Input.GetAxis("Mouse X");
         mouseY = Input.GetAxis("Mouse Y");
         isRunning = Input.GetKey(run);
-        isLiftetd = Input.GetKey(lifting);
-        if (!rightLook)
+        if (playerCharacter == PlayerCharacter.Human)
         {
-            leftLook = Input.GetKey(lookLeft);
+            isLiftetd = Input.GetKey(lifting);
+            if (!rightLook)
+            {
+                leftLook = Input.GetKey(lookLeft);
+            }
+            if (!leftLook)
+            {
+                rightLook = Input.GetKey(lookRight);
+            }
+            playerIsCrouch = Input.GetKey(crouch);
         }
-        if (!leftLook)
-        {
-            rightLook = Input.GetKey(lookRight);
-        }
-        playerIsCrouch = Input.GetKey(crouch);
 
     }
     #endregion

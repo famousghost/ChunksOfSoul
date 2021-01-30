@@ -14,6 +14,18 @@ public class Menu : MonoBehaviour
         gameObject.SetActive(true);
     }
 
+    public void openCanvasMenu()
+    {
+        open = true;
+        gameObject.GetComponent<Canvas>().enabled = true;
+    }
+
+    public void closeCanvasMenu()
+    {
+        open = false;
+        gameObject.GetComponent<Canvas>().enabled = false;
+    }
+
     public void closeMenu()
     {
         open = false;

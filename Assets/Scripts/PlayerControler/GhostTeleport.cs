@@ -14,9 +14,10 @@ public class GhostTeleport : MonoBehaviour
         ghostTeleportTransform = new GameObject[4];
         for(int i = 0; i < 4; ++i)
         {
-            string teleportName = "GhostTeleport";
+            int id = i + 1;
+            string teleportName = "GhostTeleportFloor" + id;
             Debug.Log("Teleport name is: " + teleportName);
-            ghostTeleportTransform[i] = GameObject.FindGameObjectsWithTag(teleportName)[i].gameObject;
+            ghostTeleportTransform[i] = GameObject.FindGameObjectWithTag(teleportName).gameObject;
         }
     }
 

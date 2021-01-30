@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
+using Photon.Pun;
 
 public class UpdateGoal : MonoBehaviour
 {
@@ -12,7 +13,7 @@ public class UpdateGoal : MonoBehaviour
     public int currentScore;
     public int currentScorePlayer1;
     public int currentScorePlayer2;
-
+    public PhotonView photonView;
 
     void Start()
     {
@@ -22,11 +23,12 @@ public class UpdateGoal : MonoBehaviour
         currentScore = 0;
         scorePlayer1.text = "Points: " + score.scorePlayer1;
         scorePlayer2.text = "Points: " + score.scorePlayer2;
+        photonView = PhotonView.Get(this);
     }
 
-    void Update()
+    public void updateGoalText()
     {
-        if(currentScore != score.spiritChunkCounter)
+        if (currentScore != score.spiritChunkCounter)
         {
             currentScore = score.spiritChunkCounter;
             goalValue.text = currentScore + "/7 Chunks of soul";
@@ -38,5 +40,15 @@ public class UpdateGoal : MonoBehaviour
             scorePlayer1.text = "Points: " + score.scorePlayer1;
             scorePlayer2.text = "Points: " + score.scorePlayer2;
         }
+    }
+
+    void Update()
+    {
+        float timer = 50.0f;
+        while(timer >= 0)
+        {
+            timer -= Time.deltaTime;
+        }
+        updateGoalText();
     }
 }

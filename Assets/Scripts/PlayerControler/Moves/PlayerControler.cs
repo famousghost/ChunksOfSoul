@@ -3,6 +3,7 @@ using System.Collections;
 using UnityEngine.Networking;
 using Photon.Pun;
 using Photon.Realtime;
+using TMPro;
 
 #region PlayerState Enumerator
 public enum PlayerStates
@@ -34,6 +35,7 @@ public class PlayerControler : MonoBehaviour, IPunObservable
     public PhotonView photonView;
 
     public SpawnSpiritChunks SpawnSpiritChunks;
+
     public Score score;
 
     public int rnd;
@@ -42,7 +44,11 @@ public class PlayerControler : MonoBehaviour, IPunObservable
     public bool ladderBoardUpdated;
     public int scorePlayer1;
     public int scorePlayer2;
-    public Canvas monsterCanvas;
+    public TMP_Text sensitivityValue; 
+
+    public float throwStrength;
+
+    public bool gameOver;
 
     #region PlayerCharacter
     [Header("Player Character Enum")]
@@ -77,6 +83,12 @@ public class PlayerControler : MonoBehaviour, IPunObservable
 
     [SerializeField]
     private AudioSource playerSource;
+
+    [SerializeField]
+    private AudioClip humanAmbient;
+
+    [SerializeField]
+    private AudioClip monsterAmbient;
     #endregion
 
     #region Vector3
@@ -115,7 +127,7 @@ public class PlayerControler : MonoBehaviour, IPunObservable
 
     private const float MAXIMUMROTATIONEY = 80.0f;
 
-    private const float MAXSTAMINA = 100.0f;
+    private const float MAXSTAMINA = 300.0f;
 
     private const float MINSTAMINA = 0.0f;
 
@@ -129,8 +141,6 @@ public class PlayerControler : MonoBehaviour, IPunObservable
     #endregion
 
     #region Characters Stats
-
-    private float m_hp = 100.0f;
 
     private float m_walkSpeed;
 
@@ -183,6 +193,7 @@ public class PlayerControler : MonoBehaviour, IPunObservable
     // Use this for initialization
     void Start()
     {
+        throwStrength = 10.0f;
         ladderBoardUpdated = false;
         playerDied = false;
         rnd = Random.Range(0, 201);
@@ -193,26 +204,33 @@ public class PlayerControler : MonoBehaviour, IPunObservable
             GetComponentInChildren<Camera>().targetDisplay=2;
             return;
         }
-
         if (playerCharacter == PlayerCharacter.Ghost)
         {
-            monsterCanvas = GameObject.FindGameObjectWithTag("MonsterCanvas").GetComponent<Canvas>();
-            enableMosterCanvas();
+            playerSource = GameObject.FindGameObjectWithTag("MonsterAmbient").GetComponent<AudioSource>();
+        }
+        if(playerCharacter == PlayerCharacter.Human)
+        {
+            playerSource = GameObject.FindGameObjectWithTag("HumanAmbient").GetComponent<AudioSource>();
         }
 
+        playerSource.Play();
+
+        sensitivityValue = GameObject.Find("Sensivity").GetComponent<TMP_Text>();
         SpawnSpiritChunks = GameObject.Find("RoomManager").GetComponent<SpawnSpiritChunks>();
         score = GameObject.Find("RoomManager").GetComponent<Score>();
         taken = false;
         spiritChunkCounter = 0;
+        score.spiritChunkCounter = 0;
+        sensivity = float.Parse(sensitivityValue.text);
         if (playerCharacter == PlayerCharacter.Human)
         {
-            m_walkSpeed = 4.0f;
-            m_runSpeed = 6.0f;
+            m_walkSpeed = 5.0f;
+            m_runSpeed = 8.5f;
         }
         else
         {
             m_walkSpeed = 6.0f;
-            m_runSpeed = 9.0f;
+            m_runSpeed = 8.0f;
         }
         isClimbing = false;
         stamina = MAXSTAMINA;
@@ -222,12 +240,6 @@ public class PlayerControler : MonoBehaviour, IPunObservable
         keyInput = GetComponent<KeysInput>();
         Cursor.lockState = CursorLockMode.Locked;
         mainCamPosition = cam.transform.localPosition;
-        movementSound = GetComponent<MovmentSound>();
-    }
-
-    void enableMosterCanvas()
-    {
-        monsterCanvas.enabled = true;
     }
 
     void OnTriggerEnter(Collider col)
@@ -236,7 +248,7 @@ public class PlayerControler : MonoBehaviour, IPunObservable
         {
             col.gameObject.SetActive(false);
             spiritChunkCounter++;
-            photonView.RPC("RPC_updateSpiritChunk", RpcTarget.All, new object[] { spiritChunkCounter });
+            photonView.RPC("RPC_updateSpiritChunk", RpcTarget.AllBufferedViaServer, new object[] { spiritChunkCounter});
         }
     }
 
@@ -250,45 +262,24 @@ public class PlayerControler : MonoBehaviour, IPunObservable
             {
                 playerDied = true;
             }
-            photonView.RPC("RPC_setPLayerHasBeenTaken", RpcTarget.All, new object[] { taken });
+            photonView.RPC("RPC_setPLayerHasBeenTaken", RpcTarget.AllBufferedViaServer, new object[] { taken });
         }
     }
 
     [PunRPC]
     public void RPC_setPLayerHasBeenTaken(bool isTaken)
     {
-        if(!photonView.IsMine)
-        {
-            return;
-        }
         taken = isTaken;
     }
 
     [PunRPC]
     public void RPC_randomSpiritChunkPositions(int newRnd)
     {
-        if(!photonView.IsMine)
-        {
-            return;
-        }
         rnd = newRnd;
-    }
-
-    [PunRPC]
-    public void RPC_updateSpiritChunk(int spiricChunk)
-    {
-        if(!photonView.IsMine)
-        {
-            return;
-        }
-        score.spiritChunkCounter = spiricChunk;
     }
 
     public void resetGame()
     {
-        spiritChunkCounter = 0;
-        score.spiritChunkCounter = 0;
-        photonView.RPC("RPC_updateSpiritChunk", RpcTarget.All, new object[] { spiritChunkCounter });
         Player player = PhotonNetwork.PlayerListOthers[0];
         Debug.Log("Gracz: " + player.NickName);
         scorePlayer1 = 0;
@@ -322,12 +313,7 @@ public class PlayerControler : MonoBehaviour, IPunObservable
                 }
             }
         }
-        photonView.RPC("RPC_updateLadderBoard", RpcTarget.All, new object[] { score.scorePlayer1 + scorePlayer1, score.scorePlayer2 + scorePlayer2 });
-        float wait = 15.0f;
-        while(wait > 0.0f)
-        {
-            wait -= Time.deltaTime;
-        }
+        photonView.RPC("RPC_updateLadderBoard", RpcTarget.AllBufferedViaServer, new object[] { score.scorePlayer1 + scorePlayer1, score.scorePlayer2 + scorePlayer2 });
         photonView.RPC("RPC_Gameover", RpcTarget.All);
     }
 
@@ -338,12 +324,23 @@ public class PlayerControler : MonoBehaviour, IPunObservable
             return;
         }
 
+        if(gameOver)
+        {
+
+        }
+
         if (score.spiritChunkCounter >= 7 || taken)
         {
             resetGame();
         }
 
-        keyInput.Inputs();
+        sensivity = float.Parse(sensitivityValue.text);
+        if (sensivity != float.Parse(sensitivityValue.text))
+        {
+            sensivity = float.Parse(sensitivityValue.text);
+        }
+
+        keyInput.Inputs(playerCharacter);
         ChangePlayerStates();
         CheckPlayerState();
         if (stunTime > 0.0f)
@@ -364,17 +361,6 @@ public class PlayerControler : MonoBehaviour, IPunObservable
         }
     }
     #endregion
-
-    [PunRPC]
-    void RPC_updateLadderBoard(int scP1, int scP2)
-    {
-        if(!photonView.IsMine)
-        {
-            return;
-        }
-        score.scorePlayer1 = scP1;
-        score.scorePlayer2 = scP2;
-    }
 
     [PunRPC]
     void RPC_Gameover()
@@ -454,27 +440,17 @@ public class PlayerControler : MonoBehaviour, IPunObservable
         {
             case PlayerStates.PlayerIdle:
                 StandUpAnimation();
-                movementSound.StopSound();
                 break;
             case PlayerStates.PlayerWalk:
                 StandUpAnimation();
-                if (keyInput.GetOnGrounded())
-                    movementSound.PlayWalkSound();
-                else
-                    movementSound.StopSound();
                 walkSpeed = m_walkSpeed;
                 break;
             case PlayerStates.PlayerRun:
                 StandUpAnimation();
-                if (keyInput.GetOnGrounded())
-                    movementSound.PlayRunSound();
-                else
-                    movementSound.StopSound();
                 walkSpeed = m_runSpeed;
                 break;
             case PlayerStates.PlayerCrouch:
                 CrouchAnimation();
-                movementSound.StopSound();
                 walkSpeed = CROUCHSPEED;
                 break;
             case PlayerStates.PlayerClimbing:
@@ -613,7 +589,7 @@ public class PlayerControler : MonoBehaviour, IPunObservable
             stamina += 0.5f;
             if (stamina >= MAXSTAMINA)
             {
-                stamina = 100.0f;
+                stamina = MAXSTAMINA;
                 canRun = true;
             }
 
@@ -646,6 +622,10 @@ public class PlayerControler : MonoBehaviour, IPunObservable
 
         if (Physics.Raycast(ray, out hit, MAXDISTANCEOFRAY))
         {
+            if (hit.collider.gameObject.layer == LayerMask.NameToLayer("Lifted"))
+            {
+
+            }
             if (keyInput.GetIsLifted())
             {
 
@@ -664,7 +644,7 @@ public class PlayerControler : MonoBehaviour, IPunObservable
 
                         canLift = false;
 
-                        gameObj.AddForce(cam.transform.forward * 5, ForceMode.Impulse);
+                        gameObj.AddForce(cam.transform.forward * throwStrength, ForceMode.Impulse);
                         Physics.IgnoreCollision(gameObj.transform.GetComponent<Collider>(), rigidBody.transform.GetComponent<Collider>(), false);
                         gameObj = null;
                         liftItem = false;
@@ -718,13 +698,28 @@ public class PlayerControler : MonoBehaviour, IPunObservable
     }
     #endregion
 
-    void IPunObservable.OnPhotonSerializeView(PhotonStream stream, PhotonMessageInfo info)
+
+    [PunRPC]
+    public void RPC_updateSpiritChunk(int spiritChunk)
+    {
+        score.spiritChunkCounter = spiritChunk;
+    }
+
+    [PunRPC]
+    void RPC_updateLadderBoard(int scP1, int scP2)
+    {
+        score.scorePlayer1 = scP1;
+        score.scorePlayer2 = scP2;
+    }
+
+    public void OnPhotonSerializeView(PhotonStream stream, PhotonMessageInfo info)
     {
         if (stream.IsWriting)
         {
             stream.SendNext(rnd);
-            stream.SendNext(score.spiritChunkCounter);
             stream.SendNext(taken);
+            stream.SendNext(gameOver);
+            stream.SendNext(score.spiritChunkCounter);
             stream.SendNext(score.scorePlayer1);
             stream.SendNext(score.scorePlayer2);
         }
@@ -732,10 +727,22 @@ public class PlayerControler : MonoBehaviour, IPunObservable
         {
             score = GameObject.Find("RoomManager").GetComponent<Score>();
             rnd = (int)stream.ReceiveNext();
-            score.spiritChunkCounter = (int)stream.ReceiveNext();
             taken = (bool)stream.ReceiveNext();
+            gameOver = (bool)stream.ReceiveNext();
+            score.spiritChunkCounter = (int)stream.ReceiveNext();
             score.scorePlayer1 = (int)stream.ReceiveNext();
             score.scorePlayer2 = (int)stream.ReceiveNext();
+            updateIfNecessary(spiritChunkCounter, score.spiritChunkCounter);
+            updateIfNecessary(scorePlayer1, score.scorePlayer1);
+            updateIfNecessary(scorePlayer2, score.scorePlayer2);
+        }
+    }
+
+    void updateIfNecessary(int value1, int value2)
+    {
+        if(value1 != value2)
+        {
+            value1 = value2;
         }
     }
 
