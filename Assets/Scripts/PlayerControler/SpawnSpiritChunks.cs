@@ -9,10 +9,9 @@ public class SpawnSpiritChunks : MonoBehaviour
     public GameObject[] objectToSpawnList3;
     public GameObject[] objectToSpawnList4;
 
-    // Start is called before the first frame update
     void Start()
     {
-        spawnChunks();
+        spawnChunks(0);
     }
 
     void activeSpiritChunks(GameObject[] array)
@@ -23,7 +22,7 @@ public class SpawnSpiritChunks : MonoBehaviour
         }
     }
 
-    public void spawnChunks()
+    public void spawnChunks(int rnd)
     {
         foreach(GameObject obj in objectToSpawnList1)
         {
@@ -41,7 +40,6 @@ public class SpawnSpiritChunks : MonoBehaviour
         {
             obj.SetActive(false);
         }
-        int rnd = Random.Range(0, 201);
 
         if (rnd <= 50)
         {

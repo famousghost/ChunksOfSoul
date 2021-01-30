@@ -9,7 +9,7 @@ public class MonsterStun : MonoBehaviour
 
     void OnCollisionEnter(Collision col)
     {
-        if (col.gameObject.tag == "StunObject" && playerController.playerCharacter == PlayerCharacter.Monster)
+        if (col.gameObject.tag == "StunObject" && playerController.playerCharacter == PlayerCharacter.Ghost)
         {
             Destroy(col.gameObject);
             playerController.stunTime = 4.0f;

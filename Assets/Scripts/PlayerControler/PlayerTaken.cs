@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using Photon.Pun;
 
+[RequireComponent(typeof(PhotonView))]
 public class PlayerTaken : MonoBehaviour, IPunObservable
 {
     public bool take;

@@ -19,11 +19,11 @@ public enum PlayerStates
 public enum PlayerCharacter
 {
     Human = 0,
-    Monster
+    Ghost
 }
 #endregion
 
-public class PlayerControler : MonoBehaviour
+public class PlayerControler : MonoBehaviour, IPunObservable
 {
     #region PlayerState
     [Header("Player States Enum")]
@@ -36,6 +36,8 @@ public class PlayerControler : MonoBehaviour
     public Score score;
     public PlayerTaken playerTaken;
     public SpawnSpiritChunks SpawnSpiritChunks;
+
+    public int rnd;
 
     #region PlayerCharacter
     [Header("Player Character Enum")]
@@ -174,6 +176,7 @@ public class PlayerControler : MonoBehaviour
     // Use this for initialization
     void Start()
     {
+        rnd = Random.Range(0, 200);
         playerManager = PhotonView.Find((int)photonView.InstantiationData[0]).GetComponent<PlayerManager>();
         score = GameObject.Find("RoomManager").GetComponent<Score>();
         playerTaken = GameObject.Find("RoomManager").GetComponent<PlayerTaken>();
@@ -232,7 +235,6 @@ public class PlayerControler : MonoBehaviour
     {
         photonView.RPC("RPC_Gameover", RpcTarget.All);
         score.spiritChunkCounter = 0;
-        SpawnSpiritChunks.spawnChunks();
     }
 
     // Update is called once per frame
@@ -240,7 +242,7 @@ public class PlayerControler : MonoBehaviour
     {
         if (score.spiritChunkCounter >= 7 || playerTaken.take)
         {
-            float counter = 3.0f;
+            float counter = 5.0f;
             while(counter > 0.0f)
             {
                 counter -= Time.deltaTime;
@@ -265,7 +267,7 @@ public class PlayerControler : MonoBehaviour
             Walking();
         }
         Rotatione();
-        if (playerCharacter != PlayerCharacter.Monster)
+        if (playerCharacter != PlayerCharacter.Ghost)
         {
             LiftObject();
             Exhaustion();
@@ -282,15 +284,19 @@ public class PlayerControler : MonoBehaviour
         {
             return;
         }
-        foreach (Player player in PhotonNetwork.PlayerList)
+        SpawnSpiritChunks.spawnChunks(rnd);
+        if (playerTaken.take)
         {
-            if (player.NickName == "Human")
+            foreach (Player player in PhotonNetwork.PlayerList)
             {
-                player.NickName = "Monster";
-            }
-            else
-            {
-                player.NickName = "Human";
+                if (player.NickName == "Human")
+                {
+                    player.NickName = "Monster";
+                }
+                else
+                {
+                    player.NickName = "Human";
+                }
             }
         }
         playerManager.gameover();
@@ -453,7 +459,7 @@ public class PlayerControler : MonoBehaviour
         {
             playerStates = PlayerStates.PlayerRun;
         }
-        else if (playerCanCrouch && playerCharacter != PlayerCharacter.Monster)
+        else if (playerCanCrouch && playerCharacter != PlayerCharacter.Ghost)
         {
             playerStates = PlayerStates.PlayerCrouch;
         }
@@ -461,7 +467,7 @@ public class PlayerControler : MonoBehaviour
         {
             playerStates = PlayerStates.PlayerWalk;
         }
-        else if(isClimbing && playerCharacter != PlayerCharacter.Monster)
+        else if(isClimbing && playerCharacter != PlayerCharacter.Ghost)
         {
             playerStates = PlayerStates.PlayerClimbing;
         }
@@ -615,5 +621,17 @@ public class PlayerControler : MonoBehaviour
         rigidBody.useGravity = true;
     }
     #endregion
+
+    void IPunObservable.OnPhotonSerializeView(PhotonStream stream, PhotonMessageInfo info)
+    {
+        if (stream.IsWriting)
+        {
+            stream.SendNext(rnd);
+        }
+        else
+        {
+            rnd = (int)stream.ReceiveNext();
+        }
+    }
 
 }

@@ -24,7 +24,7 @@ public class LadderClimbing : MonoBehaviour {
         {
             return;
         }
-        if(playerBody.playerCharacter == PlayerCharacter.Monster)
+        if(playerBody.playerCharacter == PlayerCharacter.Ghost)
         {
             return;
         }
@@ -50,7 +50,7 @@ public class LadderClimbing : MonoBehaviour {
         {
             return;
         }
-        if (playerBody.playerCharacter == PlayerCharacter.Monster)
+        if (playerBody.playerCharacter == PlayerCharacter.Ghost)
         {
             return;
         }
