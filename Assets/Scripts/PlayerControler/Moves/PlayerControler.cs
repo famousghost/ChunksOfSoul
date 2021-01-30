@@ -322,9 +322,12 @@ public class PlayerControler : MonoBehaviour, IPunObservable
                 }
             }
         }
-        photonView.RPC("RPC_updateLadderBoard", RpcTarget.All, new object[] { scorePlayer1, scorePlayer2 });
-        Debug.Log("score.scorePlayer1 = " + score.scorePlayer1);
-        Debug.Log("score.scorePlayer2 = " + score.scorePlayer2);
+        photonView.RPC("RPC_updateLadderBoard", RpcTarget.All, new object[] { score.scorePlayer1 + scorePlayer1, score.scorePlayer2 + scorePlayer2 });
+        float wait = 15.0f;
+        while(wait > 0.0f)
+        {
+            wait -= Time.deltaTime;
+        }
         photonView.RPC("RPC_Gameover", RpcTarget.All);
     }
 
@@ -369,8 +372,8 @@ public class PlayerControler : MonoBehaviour, IPunObservable
         {
             return;
         }
-        score.scorePlayer1 += scP1;
-        score.scorePlayer2 += scP2;
+        score.scorePlayer1 = scP1;
+        score.scorePlayer2 = scP2;
     }
 
     [PunRPC]
