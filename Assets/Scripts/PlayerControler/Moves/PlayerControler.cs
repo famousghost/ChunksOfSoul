@@ -175,14 +175,15 @@ public class PlayerControler : MonoBehaviour
     void Start()
     {
         playerManager = PhotonView.Find((int)photonView.InstantiationData[0]).GetComponent<PlayerManager>();
+        score = GameObject.Find("RoomManager").GetComponent<Score>();
+        playerTaken = GameObject.Find("RoomManager").GetComponent<PlayerTaken>();
+        SpawnSpiritChunks = GameObject.Find("RoomManager").GetComponent<SpawnSpiritChunks>();
         if (!photonView.IsMine)
         {
             GetComponentInChildren<Camera>().targetDisplay=2;
             return;
         }
-        score = GameObject.Find("RoomManager").GetComponent<Score>();
-        playerTaken = GameObject.Find("RoomManager").GetComponent<PlayerTaken>();
-        SpawnSpiritChunks = GameObject.Find("RoomManager").GetComponent<SpawnSpiritChunks>();
+        playerTaken.take = false;
         if (playerCharacter == PlayerCharacter.Human)
         {
             m_walkSpeed = 4.0f;
@@ -214,7 +215,7 @@ public class PlayerControler : MonoBehaviour
         }
     }
 
-    void OnCollisionStay(Collision col)
+    void OnCollisionEnter(Collision col)
     {
         if(!photonView.IsMine)
         {
@@ -224,7 +225,6 @@ public class PlayerControler : MonoBehaviour
         {
             Debug.Log("Monster Catch human");
             playerTaken.take = true;
-            resetGame();
         }
     }
 
@@ -238,14 +238,19 @@ public class PlayerControler : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
+        if (score.spiritChunkCounter >= 7 || playerTaken.take)
+        {
+            float counter = 3.0f;
+            while(counter > 0.0f)
+            {
+                counter -= Time.deltaTime;
+            }
+            resetGame();
+        }
+
         if (!photonView.IsMine)
         {
             return;
-        }
-
-        if (score.spiritChunkCounter >= 7)
-        {
-            resetGame();
         }
 
         keyInput.Inputs();
@@ -273,19 +278,19 @@ public class PlayerControler : MonoBehaviour
     [PunRPC]
     void RPC_Gameover()
     {
-        if(!photonView.IsMine)
+        if (!photonView.IsMine)
         {
             return;
         }
-        if(playerTaken.take)
+        foreach (Player player in PhotonNetwork.PlayerList)
         {
-            if(photonView.Owner.NickName == "Human")
+            if (player.NickName == "Human")
             {
-                photonView.Owner.NickName = "Monster";
+                player.NickName = "Monster";
             }
             else
             {
-                photonView.Owner.NickName = "Human";
+                player.NickName = "Human";
             }
         }
         playerManager.gameover();
