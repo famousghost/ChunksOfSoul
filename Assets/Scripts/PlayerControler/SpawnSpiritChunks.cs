@@ -1,17 +1,22 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using Photon.Pun;
 
-public class SpawnSpiritChunks : MonoBehaviour
+public class SpawnSpiritChunks : MonoBehaviour, IPunObservable
 {
     public GameObject[] objectToSpawnList1;
     public GameObject[] objectToSpawnList2;
     public GameObject[] objectToSpawnList3;
     public GameObject[] objectToSpawnList4;
+    private PhotonView photonView;
+    public int rnd;
 
     void Start()
     {
-        spawnChunks(0);
+        rnd = 0;
+        spawnChunks();
+        photonView = PhotonView.Get(this);
     }
 
     void activeSpiritChunks(GameObject[] array)
@@ -22,7 +27,7 @@ public class SpawnSpiritChunks : MonoBehaviour
         }
     }
 
-    public void spawnChunks(int rnd)
+    public void spawnChunks()
     {
         foreach(GameObject obj in objectToSpawnList1)
         {
@@ -56,6 +61,34 @@ public class SpawnSpiritChunks : MonoBehaviour
         if (rnd > 150 && rnd <= 200)
         {
             activeSpiritChunks(objectToSpawnList4);
+        }
+    }
+
+    public void randomChunkPos()
+    {
+        rnd = Random.Range(0, 201);
+    }
+
+    public void updateRndValue()
+    {
+        photonView.RPC("RPC_updateRndValue", RpcTarget.All, rnd);
+    }
+
+    [PunRPC]
+    public void RPC_updateRndValue(int r)
+    {
+        rnd = r;
+    }
+
+    public void OnPhotonSerializeView(PhotonStream stream, PhotonMessageInfo info)
+    {
+        if (stream.IsWriting)
+        {
+            stream.SendNext(rnd);
+        }
+        else
+        {
+            rnd = (int)stream.ReceiveNext();
         }
     }
 }

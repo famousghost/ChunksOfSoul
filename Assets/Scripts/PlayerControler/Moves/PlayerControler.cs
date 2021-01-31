@@ -34,11 +34,10 @@ public class PlayerControler : MonoBehaviour, IPunObservable
 
     public PhotonView photonView;
 
-    public SpawnSpiritChunks SpawnSpiritChunks;
+    public SpawnSpiritChunks spawnSpiritChunks;
 
     public Score score;
 
-    public int rnd;
     public bool taken;
     public bool playerDied;
     public bool ladderBoardUpdated;
@@ -197,8 +196,6 @@ public class PlayerControler : MonoBehaviour, IPunObservable
         throwStrength = 10.0f;
         ladderBoardUpdated = false;
         playerDied = false;
-        rnd = Random.Range(0, 201);
-        photonView.RPC("RPC_randomSpiritChunkPositions", RpcTarget.All, new object[] { rnd });
         playerManager = PhotonView.Find((int)photonView.InstantiationData[0]).GetComponent<PlayerManager>();
         flashLightState = GameObject.FindGameObjectWithTag("FlashLight").GetComponent<FlashLightState>();
         if (!photonView.IsMine)
@@ -226,11 +223,12 @@ public class PlayerControler : MonoBehaviour, IPunObservable
         }
 
         gameOver = GameObject.Find("GameOverMenu").GetComponent<Canvas>();
+        WinnerNickName = GameObject.Find("WinnerNickName").GetComponent<TMP_Text>();
 
         playerSource.Play();
 
         sensitivityValue = GameObject.Find("Sensivity").GetComponent<TMP_Text>();
-        SpawnSpiritChunks = GameObject.Find("RoomManager").GetComponent<SpawnSpiritChunks>();
+        spawnSpiritChunks = GameObject.Find("RoomManager").GetComponent<SpawnSpiritChunks>();
         score = GameObject.Find("RoomManager").GetComponent<Score>();
         taken = false;
         score.spiritChunkCounter = 0;
@@ -287,12 +285,6 @@ public class PlayerControler : MonoBehaviour, IPunObservable
     public void RPC_setPLayerHasBeenTaken(bool isTaken)
     {
         taken = isTaken;
-    }
-
-    [PunRPC]
-    public void RPC_randomSpiritChunkPositions(int newRnd)
-    {
-        rnd = newRnd;
     }
 
     public void resetGame()
@@ -397,7 +389,9 @@ public class PlayerControler : MonoBehaviour, IPunObservable
         {
             return;
         }
-        SpawnSpiritChunks.spawnChunks(rnd);
+        spawnSpiritChunks.randomChunkPos();
+        spawnSpiritChunks.updateRndValue();
+        spawnSpiritChunks.spawnChunks();
         if (taken)
         {
             foreach (Player player in PhotonNetwork.PlayerList)
@@ -730,12 +724,10 @@ public class PlayerControler : MonoBehaviour, IPunObservable
     {
         if (stream.IsWriting)
         {
-            stream.SendNext(rnd);
             stream.SendNext(taken);
         }
         else
         {
-            rnd = (int)stream.ReceiveNext();
             taken = (bool)stream.ReceiveNext();
         }
     }
