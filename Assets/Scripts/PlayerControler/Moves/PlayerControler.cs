@@ -223,7 +223,7 @@ public class PlayerControler : MonoBehaviour, IPunObservable
         }
 
         gameOver = GameObject.Find("GameOverMenu").GetComponent<Canvas>();
-        WinnerNickName = GameObject.Find("WinnerNickName").GetComponent<TMP_Text>();
+        playerNick = GameObject.Find("WinnerNickName").GetComponent<TMP_Text>();
 
         playerSource.Play();
 
