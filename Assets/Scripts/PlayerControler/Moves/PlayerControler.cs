@@ -183,8 +183,6 @@ public class PlayerControler : MonoBehaviour, IPunObservable
     private float rotateZ;
     #endregion
 
-    public int spiritChunkCounter;
-
     #region System Methods
     void Awake()
     {
@@ -235,7 +233,6 @@ public class PlayerControler : MonoBehaviour, IPunObservable
         SpawnSpiritChunks = GameObject.Find("RoomManager").GetComponent<SpawnSpiritChunks>();
         score = GameObject.Find("RoomManager").GetComponent<Score>();
         taken = false;
-        spiritChunkCounter = 0;
         score.spiritChunkCounter = 0;
         sensivity = float.Parse(sensitivityValue.text);
         if (playerCharacter == PlayerCharacter.Human)
@@ -260,11 +257,15 @@ public class PlayerControler : MonoBehaviour, IPunObservable
 
     void OnTriggerEnter(Collider col)
     {
+        if(!photonView.IsMine)
+        {
+            return;
+        }
         if (col.gameObject.tag == "ItemToPickUp" && playerCharacter == PlayerCharacter.Human)
         {
             col.gameObject.SetActive(false);
-            spiritChunkCounter++;
-            photonView.RPC("RPC_updateSpiritChunk", RpcTarget.AllBufferedViaServer, new object[] { spiritChunkCounter});
+            score.spiritChunkCounter++;
+            score.updateSpiritsChunks();
         }
     }
 
@@ -296,40 +297,38 @@ public class PlayerControler : MonoBehaviour, IPunObservable
 
     public void resetGame()
     {
-        Player player = PhotonNetwork.PlayerListOthers[0];
+        Player player = PhotonNetwork.PlayerList[0];
         Debug.Log("Gracz: " + player.NickName);
-        scorePlayer1 = 0;
-        scorePlayer2 = 0;
-        if (!player.IsLocal)
+        if (player.IsLocal)
         {
             if (taken)
             {
                 if (player.NickName == "Human")
                 {
-                    Debug.Log("pierwszy gracz byl potworem Taken = " + taken);
-                    scorePlayer1 = 100;
+                    Debug.Log("przeciwnik byl potworem Taken = " + taken);
+                    score.scorePlayer2 += 100;
                 }
                 else
                 {
-                    Debug.Log("drugi gracz byl potworem Taken = " + taken);
-                    scorePlayer2 = 100;
+                    Debug.Log("ja bylem potworem Taken = " + taken);
+                    score.scorePlayer1 += 100;
                 }
             }
             else
             {
                 if (player.NickName == "Human")
                 {
-                    Debug.Log("pierwszy gracz byl potworem Taken = " + taken);
-                    scorePlayer2 = 200;
+                    Debug.Log("ja bylem potworem Taken = " + taken);
+                    score.scorePlayer1 += 200;
                 }
                 else
                 {
-                    Debug.Log("drugi gracz byl potworem Taken = " + taken);
-                    scorePlayer1 = 200;
+                    Debug.Log("przeciwnik byl potworem Taken = " + taken);
+                    score.scorePlayer2 += 200;
                 }
             }
         }
-        photonView.RPC("RPC_updateLadderBoard", RpcTarget.AllBufferedViaServer, new object[] { score.scorePlayer1 + scorePlayer1, score.scorePlayer2 + scorePlayer2 });
+        score.updateLadderBoard();
         photonView.RPC("RPC_Gameover", RpcTarget.All);
     }
 
@@ -342,8 +341,7 @@ public class PlayerControler : MonoBehaviour, IPunObservable
 
         if(score.scorePlayer1 >= 500 || score.scorePlayer2 >= 500)
         {
-            gameOver.enabled = true;
-            playerNick.text = nickName;
+            photonView.RPC("RPC_Winner", RpcTarget.All);
         }
 
         grabImage.enabled = false;
@@ -380,6 +378,17 @@ public class PlayerControler : MonoBehaviour, IPunObservable
         }
     }
     #endregion
+
+    [PunRPC]
+    void RPC_Winner()
+    {
+        if(!photonView.IsMine)
+        {
+            return;
+        }
+        gameOver.enabled = true;
+        playerNick.text = nickName;
+    }
 
     [PunRPC]
     void RPC_Gameover()
@@ -717,49 +726,17 @@ public class PlayerControler : MonoBehaviour, IPunObservable
     }
     #endregion
 
-
-    [PunRPC]
-    public void RPC_updateSpiritChunk(int spiritChunk)
-    {
-        score.spiritChunkCounter = spiritChunk;
-    }
-
-    [PunRPC]
-    void RPC_updateLadderBoard(int scP1, int scP2)
-    {
-        score.scorePlayer1 = scP1;
-        score.scorePlayer2 = scP2;
-    }
-
     public void OnPhotonSerializeView(PhotonStream stream, PhotonMessageInfo info)
     {
         if (stream.IsWriting)
         {
             stream.SendNext(rnd);
             stream.SendNext(taken);
-            stream.SendNext(score.spiritChunkCounter);
-            stream.SendNext(score.scorePlayer1);
-            stream.SendNext(score.scorePlayer2);
         }
         else
         {
-            score = GameObject.Find("RoomManager").GetComponent<Score>();
             rnd = (int)stream.ReceiveNext();
             taken = (bool)stream.ReceiveNext();
-            score.spiritChunkCounter = (int)stream.ReceiveNext();
-            score.scorePlayer1 = (int)stream.ReceiveNext();
-            score.scorePlayer2 = (int)stream.ReceiveNext();
-            updateIfNecessary(spiritChunkCounter, score.spiritChunkCounter);
-            updateIfNecessary(scorePlayer1, score.scorePlayer1);
-            updateIfNecessary(scorePlayer2, score.scorePlayer2);
-        }
-    }
-
-    void updateIfNecessary(int value1, int value2)
-    {
-        if(value1 != value2)
-        {
-            value1 = value2;
         }
     }
 
