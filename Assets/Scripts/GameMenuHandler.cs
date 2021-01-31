@@ -5,6 +5,7 @@ using UnityEngine;
 public class GameMenuHandler : MonoBehaviour
 {
     public ServerMenuManager menuManager;
+    public static bool isMenuOpened = false;
 
     void Start()
     {
@@ -18,7 +19,18 @@ public class GameMenuHandler : MonoBehaviour
         {
             Cursor.lockState = CursorLockMode.None;
             Cursor.visible = true;
-            menuManager.openMenuCanvas("GameMenu");
+            if (!menuManager.menuOpened)
+            {
+                menuManager.openMenuCanvas("GameMenu");
+                menuManager.menuOpened = true;
+                isMenuOpened = true;
+            }
+            else
+            {
+                menuManager.closeMenuCanvas("GameMenu");
+                menuManager.menuOpened = false;
+                isMenuOpened = false;
+            }
         }
     }
 }

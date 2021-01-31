@@ -9,6 +9,7 @@ public class ServerMenuManager : MonoBehaviour
 {
     public static ServerMenuManager instance;
     public TMP_Text sensitivityValue;
+    public bool menuOpened;
 
     [SerializeField]
     private Menu[] menus;
@@ -16,6 +17,7 @@ public class ServerMenuManager : MonoBehaviour
     private void Awake()
     {
         instance = this;
+        menuOpened = false;
     }
 
     public void openMenu(string menuName)
@@ -91,6 +93,7 @@ public class ServerMenuManager : MonoBehaviour
                 closeMenuCanvas(menus[i]);
             }
         }
+        menuOpened = false;
         Cursor.lockState = CursorLockMode.Locked;
         Cursor.visible = false;
     }
@@ -103,5 +106,16 @@ public class ServerMenuManager : MonoBehaviour
     public void closeMenuCanvas(Menu menu)
     {
         menu.closeCanvasMenu();
+    }
+
+    public void closeMenuCanvas(string name)
+    {
+        for (int i = 0; i < menus.Length; i++)
+        {
+            if (menus[i].name == name)
+            {
+                closeMenuCanvas(menus[i]);
+            }
+        }
     }
 }

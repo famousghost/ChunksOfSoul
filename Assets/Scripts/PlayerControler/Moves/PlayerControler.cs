@@ -39,7 +39,7 @@ public class PlayerControler : MonoBehaviour, IPunObservable
     public Score score;
 
     public bool taken;
-    public bool playerDied;
+    public bool finished;
     public bool ladderBoardUpdated;
     public int scorePlayer1;
     public int scorePlayer2;
@@ -188,6 +188,7 @@ public class PlayerControler : MonoBehaviour, IPunObservable
         photonView = GetComponent<PhotonView>();
         scorePlayer1 = 0;
         scorePlayer2 = 0;
+        finished = false;
     }
 
     // Use this for initialization
@@ -195,22 +196,12 @@ public class PlayerControler : MonoBehaviour, IPunObservable
     {
         throwStrength = 10.0f;
         ladderBoardUpdated = false;
-        playerDied = false;
         playerManager = PhotonView.Find((int)photonView.InstantiationData[0]).GetComponent<PlayerManager>();
         flashLightState = GameObject.FindGameObjectWithTag("FlashLight").GetComponent<FlashLightState>();
         if (!photonView.IsMine)
         {
             GetComponentInChildren<Camera>().targetDisplay=2;
             return;
-        }
-
-        if(PhotonNetwork.IsMasterClient)
-        {
-            nickName = "Player1";
-        }
-        else
-        {
-            nickName = "Player2";
         }
 
         if (playerCharacter == PlayerCharacter.Ghost)
@@ -273,10 +264,6 @@ public class PlayerControler : MonoBehaviour, IPunObservable
         {
             Debug.Log("Monster Catch human");
             taken = true;
-            if(playerCharacter == PlayerCharacter.Human)
-            {
-                playerDied = true;
-            }
             photonView.RPC("RPC_setPLayerHasBeenTaken", RpcTarget.AllBufferedViaServer, new object[] { taken });
         }
     }
@@ -330,10 +317,22 @@ public class PlayerControler : MonoBehaviour, IPunObservable
         {
             return;
         }
-
-        if(score.scorePlayer1 >= 500 || score.scorePlayer2 >= 500)
+        if(finished)
         {
-            photonView.RPC("RPC_Winner", RpcTarget.All);
+            return;
+        }
+        if(GameMenuHandler.isMenuOpened)
+        {
+            return;
+        }
+
+        if(score.scorePlayer1 >= 500)
+        {
+            photonView.RPC("RPC_Winner", RpcTarget.All, "Player1");
+        }
+        if(score.scorePlayer1 >= 500)
+        {
+            photonView.RPC("RPC_Winner", RpcTarget.All, "Player2");
         }
 
         grabImage.enabled = false;
@@ -372,14 +371,17 @@ public class PlayerControler : MonoBehaviour, IPunObservable
     #endregion
 
     [PunRPC]
-    void RPC_Winner()
+    void RPC_Winner(string name)
     {
         if(!photonView.IsMine)
         {
             return;
         }
         gameOver.enabled = true;
-        playerNick.text = nickName;
+        playerNick.text = name;
+        Cursor.lockState = CursorLockMode.None;
+        Cursor.visible = true;
+        finished = true;
     }
 
     [PunRPC]
