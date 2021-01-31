@@ -88,7 +88,7 @@ public class PlayerManager : MonoBehaviour
         PhotonNetwork.Destroy(playerController);
         PhotonNetwork.Destroy(this.gameObject);
         PhotonNetwork.LeaveRoom();
-        SceneManager.LoadScene(0);
+        Application.Quit();
     }
 
     public void gameover()
