@@ -44,7 +44,8 @@ public class PlayerControler : MonoBehaviour, IPunObservable
     public bool ladderBoardUpdated;
     public int scorePlayer1;
     public int scorePlayer2;
-    public TMP_Text sensitivityValue; 
+    public TMP_Text sensitivityValue;
+    public Canvas grabImage;
 
     public float throwStrength;
 
@@ -328,6 +329,8 @@ public class PlayerControler : MonoBehaviour, IPunObservable
         {
 
         }
+
+        grabImage.enabled = false;
 
         if (score.spiritChunkCounter >= 7 || taken)
         {
@@ -624,7 +627,7 @@ public class PlayerControler : MonoBehaviour, IPunObservable
         {
             if (hit.collider.gameObject.layer == LayerMask.NameToLayer("Lifted"))
             {
-
+                grabImage.enabled = true;
             }
             if (keyInput.GetIsLifted())
             {
