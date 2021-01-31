@@ -2,22 +2,22 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class FlashLightOnOff : FlashLightSound {
-
+public class FlashLightOnOff : MonoBehaviour
+{
     #region Light
     [SerializeField]
     private Light flashLight;
     #endregion
 
+    [SerializeField]
+    private FlashLightState flashLightState;
+
     #region System Methods
     // Use this for initialization
     void Start () {
-
-        flashLightSource = GetComponent<AudioSource>();
-        flashLightOn = Resources.Load("FlashLight/flashlighton", typeof(AudioClip)) as AudioClip;
-        flashLightOff = Resources.Load("FlashLight/flashlightoff", typeof(AudioClip)) as AudioClip;
-        flashLight = GetComponent<Light>();
-	}
+        flashLight = this.GetComponent<Light>();
+        flashLightState = GameObject.FindGameObjectWithTag("FlashLight").GetComponent<FlashLightState>();
+    }
 	
 	// Update is called once per frame
 	void Update () {
@@ -28,19 +28,37 @@ public class FlashLightOnOff : FlashLightSound {
     #region OnOffMethod
     private void OnOffMethod()
     {
+        if (flashLightState.flashLightOn)
+        {
+            flashLight.enabled = true;
+        }
+        else
+        {
+            flashLight.enabled = false;
+        }
+
         if (Input.GetKeyDown(KeyCode.F))
         {
-            if (flashLight.enabled)
+            if (flashLightState.flashLightOn)
             {
-                PlayFlashLightOff();
-                flashLight.enabled = false;
+                flashLightState.flashLightOn = false;
             }
             else
             {
-                PlayFlashLightOn();
-                flashLight.enabled = true;
+                flashLightState.flashLightOn = true;
             }
+            flashLightState.updateFlashLightStateOnServer();
         }
+    }
+
+    public void flashLigthOn()
+    {
+        flashLight.enabled = true;
+    }
+
+    public void flashLigthOff()
+    {
+        flashLight.enabled = false;
     }
     #endregion
 }

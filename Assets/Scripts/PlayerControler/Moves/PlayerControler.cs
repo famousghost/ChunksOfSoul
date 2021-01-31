@@ -46,10 +46,12 @@ public class PlayerControler : MonoBehaviour, IPunObservable
     public int scorePlayer2;
     public TMP_Text sensitivityValue;
     public Canvas grabImage;
+    public Canvas gameOver;
+    public TMP_Text playerNick;
+    public string nickName;
+    public FlashLightState flashLightState;
 
     public float throwStrength;
-
-    public bool gameOver;
 
     #region PlayerCharacter
     [Header("Player Character Enum")]
@@ -200,11 +202,22 @@ public class PlayerControler : MonoBehaviour, IPunObservable
         rnd = Random.Range(0, 201);
         photonView.RPC("RPC_randomSpiritChunkPositions", RpcTarget.All, new object[] { rnd });
         playerManager = PhotonView.Find((int)photonView.InstantiationData[0]).GetComponent<PlayerManager>();
+        flashLightState = GameObject.FindGameObjectWithTag("FlashLight").GetComponent<FlashLightState>();
         if (!photonView.IsMine)
         {
             GetComponentInChildren<Camera>().targetDisplay=2;
             return;
         }
+
+        if(PhotonNetwork.IsMasterClient)
+        {
+            nickName = "Player1";
+        }
+        else
+        {
+            nickName = "Player2";
+        }
+
         if (playerCharacter == PlayerCharacter.Ghost)
         {
             playerSource = GameObject.FindGameObjectWithTag("MonsterAmbient").GetComponent<AudioSource>();
@@ -213,6 +226,8 @@ public class PlayerControler : MonoBehaviour, IPunObservable
         {
             playerSource = GameObject.FindGameObjectWithTag("HumanAmbient").GetComponent<AudioSource>();
         }
+
+        gameOver = GameObject.Find("GameOverMenu").GetComponent<Canvas>();
 
         playerSource.Play();
 
@@ -325,9 +340,10 @@ public class PlayerControler : MonoBehaviour, IPunObservable
             return;
         }
 
-        if(gameOver)
+        if(score.scorePlayer1 >= 500 || score.scorePlayer2 >= 500)
         {
-
+            gameOver.enabled = true;
+            playerNick.text = nickName;
         }
 
         grabImage.enabled = false;
@@ -721,7 +737,6 @@ public class PlayerControler : MonoBehaviour, IPunObservable
         {
             stream.SendNext(rnd);
             stream.SendNext(taken);
-            stream.SendNext(gameOver);
             stream.SendNext(score.spiritChunkCounter);
             stream.SendNext(score.scorePlayer1);
             stream.SendNext(score.scorePlayer2);
@@ -731,7 +746,6 @@ public class PlayerControler : MonoBehaviour, IPunObservable
             score = GameObject.Find("RoomManager").GetComponent<Score>();
             rnd = (int)stream.ReceiveNext();
             taken = (bool)stream.ReceiveNext();
-            gameOver = (bool)stream.ReceiveNext();
             score.spiritChunkCounter = (int)stream.ReceiveNext();
             score.scorePlayer1 = (int)stream.ReceiveNext();
             score.scorePlayer2 = (int)stream.ReceiveNext();
